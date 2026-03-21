@@ -61,8 +61,10 @@ function buildParametersFromABI(functionDef, paramValues) {
 
     if (value !== undefined) {
       parameters.push({
-        ParameterFlag: paramDef.flag,
-        ParameterValue: formatParameterValue(paramDef.type, value),
+        Parameter: {
+          ParameterName: Buffer.from(paramDef.name).toString('hex').toUpperCase(),
+          ParameterValue: formatParameterValue(paramDef.type, value),
+        },
       });
     }
   }
