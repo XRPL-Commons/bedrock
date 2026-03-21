@@ -16,6 +16,7 @@ type DeploymentConfig struct {
 	WasmPath       string
 	ABIPath        string
 	NetworkURL     string
+	RPCURL         string // HTTP RPC URL (optional, derived from NetworkURL if empty)
 	NetworkID      uint32
 	WalletSeed     string
 	Algorithm      string

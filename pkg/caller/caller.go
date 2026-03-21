@@ -40,6 +40,10 @@ func (c *Caller) Call(ctx context.Context, config CallConfig) (*CallResult, erro
 		"verbose":          c.verbose,
 	}
 
+	if config.RPCURL != "" {
+		jsConfig["rpc_url"] = config.RPCURL
+	}
+
 	if config.ABIPath != "" {
 		jsConfig["abi_path"] = config.ABIPath
 	}

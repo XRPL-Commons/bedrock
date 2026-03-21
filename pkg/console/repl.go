@@ -29,7 +29,7 @@ type REPL struct {
 func NewREPL(cfg *config.Config, contractAccount string, walletSeed string, networkCfg config.NetworkConfig) *REPL {
 	return &REPL{
 		cfg:             cfg,
-		client:          chain.NewClient(networkCfg.URL),
+		client:          chain.NewClient(networkCfg.URL, networkCfg.GetRPCURL()),
 		contractAccount: contractAccount,
 		walletSeed:      walletSeed,
 		networkCfg:      networkCfg,

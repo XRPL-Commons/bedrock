@@ -80,6 +80,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		if deployNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 63456,
 				FaucetURL: "http://localhost:8080/faucet",
 			}
@@ -220,6 +221,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		WasmPath:      wasmPath,
 		ABIPath:       abiPath,
 		NetworkURL:    networkCfg.URL,
+		RPCURL:        networkCfg.GetRPCURL(),
 		NetworkID:     networkCfg.NetworkID,
 		WalletSeed:    walletSeed,
 		Algorithm:     deployAlgorithm,

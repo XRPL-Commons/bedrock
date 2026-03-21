@@ -57,6 +57,7 @@ func (f *Fuzzer) Run(ctx context.Context, contractAccount string, walletSeed str
 		if networkName == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 63456,
 			}
 		} else {

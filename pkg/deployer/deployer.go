@@ -39,6 +39,10 @@ func (d *Deployer) Deploy(ctx context.Context, config DeploymentConfig) (*Deploy
 		"verbose":     d.verbose,
 	}
 
+	if config.RPCURL != "" {
+		jsConfig["rpc_url"] = config.RPCURL
+	}
+
 	if config.WalletSeed != "" {
 		jsConfig["wallet_seed"] = config.WalletSeed
 	}

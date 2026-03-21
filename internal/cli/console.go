@@ -50,6 +50,7 @@ func runConsole(cmd *cobra.Command, args []string) error {
 		if consoleNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 63456,
 			}
 		} else {

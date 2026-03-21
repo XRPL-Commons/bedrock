@@ -100,6 +100,7 @@ ledger_interval = 1000
 
 [networks.local]
 url = "ws://localhost:6006"
+rpc_url = "http://localhost:5005"
 network_id = 63456
 faucet_url = "http://localhost:8080/faucet"
 

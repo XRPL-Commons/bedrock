@@ -61,6 +61,7 @@ func runLedger(cmd *cobra.Command, args []string) error {
 		if ledgerNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 63456,
 			}
 		} else {
@@ -68,7 +69,7 @@ func runLedger(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	client := chain.NewClient(networkCfg.URL)
+	client := chain.NewClient(networkCfg.URL, networkCfg.GetRPCURL())
 	ctx := cmd.Context()
 
 	ledgerIndex := "current"
@@ -108,6 +109,7 @@ func runTx(cmd *cobra.Command, args []string) error {
 		if txNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 63456,
 			}
 		} else {
@@ -115,7 +117,7 @@ func runTx(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	client := chain.NewClient(networkCfg.URL)
+	client := chain.NewClient(networkCfg.URL, networkCfg.GetRPCURL())
 	ctx := cmd.Context()
 
 	color.Cyan("Transaction Details\n")

@@ -278,6 +278,7 @@ func (r *Runner) resolveNetwork(name string) config.NetworkConfig {
 	if name == "local" {
 		return config.NetworkConfig{
 			URL:       "ws://localhost:6006",
+			RPCURL:    "http://localhost:5005",
 			NetworkID: 63456,
 		}
 	}
