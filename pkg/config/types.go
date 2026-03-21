@@ -2,6 +2,7 @@ package config
 
 import (
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -33,9 +34,27 @@ type BuildConfig struct {
 
 type NetworkConfig struct {
 	URL       string `toml:"url"`
+	RPCURL    string `toml:"rpc_url,omitempty"`
 	NetworkID uint32 `toml:"network_id"`
 	FaucetURL string `toml:"faucet_url,omitempty"`
 	Explorer  string `toml:"explorer,omitempty"`
+}
+
+// GetRPCURL returns the RPC URL for this network.
+// If rpc_url is explicitly set, it is returned as-is.
+// Otherwise, the WebSocket URL is converted to HTTP (ws:// -> http://, wss:// -> https://).
+func (n NetworkConfig) GetRPCURL() string {
+	if n.RPCURL != "" {
+		return n.RPCURL
+	}
+	url := n.URL
+	if strings.HasPrefix(url, "ws://") {
+		return strings.Replace(url, "ws://", "http://", 1)
+	}
+	if strings.HasPrefix(url, "wss://") {
+		return strings.Replace(url, "wss://", "https://", 1)
+	}
+	return url
 }
 
 type ContractConfig struct {

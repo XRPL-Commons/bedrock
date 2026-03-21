@@ -151,6 +151,7 @@ async function deployContract(config) {
     wasm_path,
     abi_path,
     network_url,
+    rpc_url,
     wallet_seed,
     faucet_url,
     fee,
@@ -390,9 +391,8 @@ async function deployContract(config) {
       // Local nodes: use HTTP RPC to avoid WebSocket hangs under emulation
       await client.disconnect();
 
-      const rpcUrl = network_url
-        .replace('ws://', 'http://').replace('wss://', 'https://')
-        .replace('localhost:6006', 'localhost:5005');
+      const rpcUrl = rpc_url || network_url
+        .replace('ws://', 'http://').replace('wss://', 'https://');
 
       const submitResult = await httpRPC(rpcUrl, 'submit', { tx_blob: signed.tx_blob }, 120000);
 

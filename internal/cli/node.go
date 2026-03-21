@@ -81,11 +81,21 @@ func nodeStart(ctx context.Context, manager *network.Manager) error {
 	// Convert ledger interval from milliseconds to duration
 	ledgerInterval := time.Duration(cfg.LocalNode.LedgerInterval) * time.Millisecond
 
+	// Resolve local network URLs from config
+	localCfg, ok := cfg.Networks["local"]
+	if !ok {
+		localCfg = config.NetworkConfig{
+			URL:    "ws://localhost:6006",
+			RPCURL: DefaultLocalRPCURL,
+		}
+	}
+	rpcURL := localCfg.GetRPCURL()
+
 	opts := network.StartOptions{
 		DockerImage:    cfg.LocalNode.DockerImage,
 		ConfigDir:      cfg.LocalNode.ConfigDir,
 		LedgerInterval: ledgerInterval,
-		RPCURL:         DefaultLocalRPCURL,
+		RPCURL:         rpcURL,
 	}
 
 	if err := manager.Start(ctx, opts); err != nil {
@@ -98,7 +108,7 @@ func nodeStart(ctx context.Context, manager *network.Manager) error {
 	fmt.Println()
 
 	// Start the ledger daemon in background
-	if err := startLedgerDaemon(cfg.LocalNode.LedgerInterval); err != nil {
+	if err := startLedgerDaemon(cfg.LocalNode.LedgerInterval, rpcURL); err != nil {
 		color.Yellow("Warning: Failed to start ledger daemon: %v\n", err)
 		color.Yellow("Ledgers will not advance automatically.\n")
 	} else {
@@ -107,8 +117,8 @@ func nodeStart(ctx context.Context, manager *network.Manager) error {
 
 	fmt.Println()
 	color.Cyan("Connection Details:\n")
-	fmt.Println("  WebSocket URL: ws://localhost:6006")
-	fmt.Println("  RPC URL:       http://localhost:5005")
+	fmt.Printf("  WebSocket URL: %s\n", localCfg.URL)
+	fmt.Printf("  RPC URL:       %s\n", rpcURL)
 	fmt.Println()
 	color.Cyan("Ledger Service:\n")
 	fmt.Printf("  Auto-advance interval: %v\n", ledgerInterval)
@@ -123,7 +133,7 @@ func nodeStart(ctx context.Context, manager *network.Manager) error {
 }
 
 // startLedgerDaemon spawns the ledger daemon as a background process
-func startLedgerDaemon(intervalMs int) error {
+func startLedgerDaemon(intervalMs int, rpcURL string) error {
 	// Get the path to the current executable
 	executable, err := os.Executable()
 	if err != nil {
@@ -143,7 +153,7 @@ func startLedgerDaemon(intervalMs int) error {
 
 	// Start the daemon process
 	cmd := exec.Command(executable, "_ledger-daemon",
-		"--rpc-url", DefaultLocalRPCURL,
+		"--rpc-url", rpcURL,
 		"--interval", strconv.Itoa(intervalMs),
 	)
 	cmd.Stdout = logFile
@@ -250,11 +260,23 @@ func nodeStatus(ctx context.Context, manager *network.Manager) error {
 	}
 
 	if status.Running {
+		// Resolve local network URLs from config
+		cfg, _ := config.LoadFromWorkingDir()
+		localCfg := config.NetworkConfig{
+			URL:    "ws://localhost:6006",
+			RPCURL: DefaultLocalRPCURL,
+		}
+		if cfg != nil {
+			if lc, ok := cfg.Networks["local"]; ok {
+				localCfg = lc
+			}
+		}
+
 		color.Green("✓ Local node is running\n")
 		fmt.Println()
 		color.Cyan("Connection Details:\n")
-		fmt.Println("  WebSocket URL: ws://localhost:6006")
-		fmt.Println("  RPC URL:       http://localhost:5005")
+		fmt.Printf("  WebSocket URL: %s\n", localCfg.URL)
+		fmt.Printf("  RPC URL:       %s\n", localCfg.GetRPCURL())
 		fmt.Println()
 
 		// Show ledger daemon status

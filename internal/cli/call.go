@@ -71,6 +71,7 @@ func runCall(cmd *cobra.Command, args []string) error {
 		if callNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 0, // Local network uses network ID 0
 			}
 		} else {
@@ -134,6 +135,7 @@ func runCall(cmd *cobra.Command, args []string) error {
 		ContractAccount:      contractAccount,
 		FunctionName:         functionName,
 		NetworkURL:           networkCfg.URL,
+		RPCURL:               networkCfg.GetRPCURL(),
 		NetworkID:            networkCfg.NetworkID,
 		WalletSeed:           walletSeed,
 		Algorithm:            callAlgorithm,

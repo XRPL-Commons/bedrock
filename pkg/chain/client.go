@@ -35,9 +35,13 @@ type RPCError struct {
 	Message string `json:"message"`
 }
 
-// NewClient creates a new XRPL RPC client from a WebSocket or HTTP URL
-func NewClient(url string) *Client {
+// NewClient creates a new XRPL RPC client from a WebSocket or HTTP URL.
+// An optional rpcURL can be provided to override the derived HTTP URL.
+func NewClient(url string, rpcURL ...string) *Client {
 	httpURL := toHTTPURL(url)
+	if len(rpcURL) > 0 && rpcURL[0] != "" {
+		httpURL = rpcURL[0]
+	}
 	return &Client{
 		httpURL: httpURL,
 		httpClient: &http.Client{
@@ -121,12 +125,12 @@ func (c *Client) CallTyped(ctx context.Context, target interface{}, method strin
 	return nil
 }
 
-// toHTTPURL converts a WebSocket URL to an HTTP URL for JSON-RPC
+// toHTTPURL converts a WebSocket URL to an HTTP URL for JSON-RPC.
+// This is a fallback conversion (ws:// -> http://, wss:// -> https://).
+// For local development where ports differ, use NetworkConfig.GetRPCURL() or pass rpcURL to NewClient.
 func toHTTPURL(rawURL string) string {
 	if strings.HasPrefix(rawURL, "ws://") {
 		rawURL = strings.Replace(rawURL, "ws://", "http://", 1)
-		// Local dev: WS port 6006 maps to JSON-RPC port 5005
-		rawURL = strings.Replace(rawURL, "localhost:6006", "localhost:5005", 1)
 	} else if strings.HasPrefix(rawURL, "wss://") {
 		rawURL = strings.Replace(rawURL, "wss://", "https://", 1)
 	}

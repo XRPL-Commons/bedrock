@@ -51,6 +51,7 @@ func runInfo(cmd *cobra.Command, args []string) error {
 		if infoNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 63456,
 			}
 		} else {
@@ -58,7 +59,7 @@ func runInfo(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	client := chain.NewClient(networkCfg.URL)
+	client := chain.NewClient(networkCfg.URL, networkCfg.GetRPCURL())
 	ctx := cmd.Context()
 
 	color.Cyan("Contract Info\n")

@@ -16,6 +16,7 @@ type CallConfig struct {
 	ContractAccount      string
 	FunctionName         string
 	NetworkURL           string
+	RPCURL               string // HTTP RPC URL (optional, derived from NetworkURL if empty)
 	NetworkID            uint32
 	WalletSeed           string
 	Algorithm            string

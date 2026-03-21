@@ -110,6 +110,7 @@ func (r *IntegrationRunner) runSuite(ctx context.Context, suite *IntegrationTest
 		if networkName == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
+				RPCURL:    "http://localhost:5005",
 				NetworkID: 63456,
 			}
 		} else {
