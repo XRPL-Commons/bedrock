@@ -125,7 +125,7 @@ function buildFunctionsFromABI(abi, exportedFunctions) {
     // XRPL STArray elements must be wrapped: { Parameter: { ... } }
     const parameters = fn.parameters.map((param) => ({
       Parameter: {
-        ParameterName: Buffer.from(param.name).toString('hex').toUpperCase(),
+        ParameterFlag: param.flag,
         ParameterType: {
           type: param.type,
         },
@@ -226,10 +226,9 @@ async function deployContract(config) {
           const funcName = Buffer.from(fn.FunctionName, 'hex').toString('utf8');
           log(`  ${idx + 1}. ${funcName}`);
           if (fn.Parameters) {
-            fn.Parameters.forEach((p) => {
+            fn.Parameters.forEach((p, i) => {
               const param = p.Parameter;
-              const paramName = Buffer.from(param.ParameterName, 'hex').toString('utf8');
-              log(`      - ${paramName}: ${param.ParameterType.type}`);
+              log(`      - param${i}: ${param.ParameterType.type} (flag=${param.ParameterFlag})`);
             });
           }
         });

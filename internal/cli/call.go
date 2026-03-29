@@ -60,6 +60,10 @@ func runCall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w (run 'bedrock init' first)", err)
 	}
 
+	if !cfg.HasPrimitive("contract") {
+		return fmt.Errorf("no contract primitive in this project\nUse 'bedrock escrow finish' or 'bedrock vault deposit/withdraw' instead")
+	}
+
 	color.Cyan("Calling smart contract function\n")
 	fmt.Printf("   Network: %s\n", callNetwork)
 	fmt.Printf("   Contract: %s\n", contractAccount)

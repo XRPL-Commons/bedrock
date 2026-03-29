@@ -27,6 +27,19 @@ func Load(path string) (*Config, error) {
 		cfg.LocalNode.DockerImage = DefaultLocalNodeConfig().DockerImage
 	}
 
+	// Backward compatibility: infer primitives from existing config sections
+	if len(cfg.Primitives) == 0 {
+		if len(cfg.Contracts) > 0 || cfg.Build.Source != "" {
+			cfg.Primitives = append(cfg.Primitives, "contract")
+		}
+		if len(cfg.Escrows) > 0 {
+			cfg.Primitives = append(cfg.Primitives, "escrow")
+		}
+		if len(cfg.Vaults) > 0 {
+			cfg.Primitives = append(cfg.Primitives, "vault")
+		}
+	}
+
 	return &cfg, nil
 }
 

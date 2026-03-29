@@ -5,6 +5,9 @@ import "time"
 // StartOptions configures how to start the local node
 type StartOptions struct {
 	DockerImage    string
+	Entrypoint     []string
+	Cmd            []string
+	Binds          []string
 	ConfigDir      string
 	LedgerInterval time.Duration
 	RPCURL         string

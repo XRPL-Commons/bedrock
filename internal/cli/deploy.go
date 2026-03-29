@@ -71,6 +71,10 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w (run 'bedrock init' first)", err)
 	}
 
+	if !cfg.HasPrimitive("contract") {
+		return fmt.Errorf("no contract primitive in this project\nUse 'bedrock escrow deploy' or 'bedrock vault deploy' instead")
+	}
+
 	color.Cyan("Deploying smart contract\n")
 	fmt.Printf("   Network: %s\n", deployNetwork)
 

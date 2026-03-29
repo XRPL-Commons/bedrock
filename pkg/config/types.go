@@ -8,15 +8,28 @@ import (
 // Config represents the bedrock.toml configuration
 type Config struct {
 	Project     ProjectConfig             `toml:"project"`
+	Primitives  []string                  `toml:"primitives,omitempty"`
 	Build       BuildConfig               `toml:"build"`
 	Networks    map[string]NetworkConfig  `toml:"networks"`
 	Contracts   map[string]ContractConfig `toml:"contracts"`
+	Escrows     map[string]EscrowConfig   `toml:"escrows,omitempty"`
+	Vaults      map[string]VaultConfig    `toml:"vaults,omitempty"`
 	Deployments map[string]DeploymentInfo `toml:"deployments"`
 	Wallets     WalletsConfig             `toml:"wallets"`
 	LocalNode   LocalNodeConfig           `toml:"local_node"`
 	Test        TestConfig                `toml:"test"`
 	Snapshot    SnapshotConfig            `toml:"snapshot"`
 	Doc         DocConfig                 `toml:"doc"`
+}
+
+// HasPrimitive returns true if the project includes the given primitive type
+func (c *Config) HasPrimitive(name string) bool {
+	for _, p := range c.Primitives {
+		if p == name {
+			return true
+		}
+	}
+	return false
 }
 
 type ProjectConfig struct {
@@ -56,11 +69,26 @@ type WalletsConfig struct {
 	Keystore string `toml:"keystore"`
 }
 
+// EscrowConfig represents a smart escrow source in the project
+type EscrowConfig struct {
+	Source string `toml:"source"`
+	Output string `toml:"output,omitempty"`
+}
+
+// VaultConfig represents a smart vault source in the project
+type VaultConfig struct {
+	Source string `toml:"source"`
+	Output string `toml:"output,omitempty"`
+}
+
 // LocalNodeConfig points to the directory containing rippled config files
 type LocalNodeConfig struct {
-	ConfigDir      string `toml:"config_dir"`
-	DockerImage    string `toml:"docker_image"`
-	LedgerInterval int    `toml:"ledger_interval"`
+	ConfigDir      string   `toml:"config_dir"`
+	DockerImage    string   `toml:"docker_image"`
+	Entrypoint     []string `toml:"entrypoint,omitempty"`
+	Cmd            []string `toml:"cmd,omitempty"`
+	Binds          []string `toml:"binds,omitempty"`
+	LedgerInterval int      `toml:"ledger_interval"`
 }
 
 // TestConfig configures the test runner
