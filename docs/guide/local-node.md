@@ -1,14 +1,18 @@
 # Local Node
 
-Bedrock manages local XRPL nodes using Docker, providing a fast development environment for testing smart contracts.
+Bedrock manages local XRPL nodes using Docker, providing a fast development environment for testing smart contracts, escrows, and vaults.
 
 ## Overview
 
-Bedrock's local node functionality wraps Docker to run a local XRPL node (rippled) with:
+Bedrock's local node functionality wraps Docker to run a local XRPL node (rippled). It auto-detects your project type and configures the node accordingly:
 
-- Pre-configured genesis ledger
-- Pre-funded test accounts
+- **Contract projects** — Uses `transia/cluster` image with genesis file and pre-funded accounts
+- **Escrow/Vault projects** — Uses `willemolding/rippled:smart-vaults.0` in standalone mode with SmartEscrow/SmartVault features enabled
+
+All project types get:
+
 - Fast block times for development
+- Automatic ledger advancement (background daemon)
 - Isolated environment
 
 ## Commands
@@ -87,32 +91,47 @@ The local node reads its configuration from `bedrock.toml`:
 ```toml
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "transia/alphanet:latest"
+docker_image = "transia/cluster:latest"
+ledger_interval = 1000
 ```
 
 | Option | Description | Default |
 |--------|-------------|---------|
 | `config_dir` | Directory containing rippled configs | `.bedrock/node-config` |
-| `docker_image` | Docker image to use for the node | `transia/alphanet:latest` |
+| `docker_image` | Docker image to use for the node | Depends on project type |
+| `ledger_interval` | Ledger advancement interval in ms | `1000` |
+
+### Docker Images per Project Type
+
+| Project Type | Docker Image |
+|---|---|
+| Contract | `transia/cluster:latest` |
+| Escrow / Vault | `willemolding/rippled:smart-vaults.0` |
 
 ### Node Configuration Files
 
-The `config_dir` should contain:
+The `config_dir` contents depend on project type:
 
+**Contract projects:**
 ```
 .bedrock/node-config/
 ├── genesis.json          # Genesis ledger state
-├── rippled.cfg          # (Optional) Custom rippled config
-└── validators.txt       # (Optional) Validator list
+├── xrpld.cfg             # Rippled configuration
+└── validators.txt        # Validator list
 ```
 
-#### genesis.json
+**Escrow/Vault projects:**
+```
+.bedrock/node-config/
+├── xrpld.cfg             # Rippled configuration (standalone mode)
+└── validators.txt        # Validator list
+```
 
-Defines the initial ledger state, including pre-funded accounts and enabled amendments.
+Escrow and vault projects run in standalone mode with SmartEscrow/SmartVault amendment features enabled — no genesis file needed.
 
-**Default genesis account:**
-- Address: `rGWrZyQqhTp9Xu7G5Pkayo7bXjH4k4QYpf`
-- Balance: 100,000,000,000 XRP
+### Ledger Advancement Daemon
+
+Bedrock automatically starts a background daemon that advances the ledger at the configured interval. The daemon PID is stored in `.bedrock/ledger-daemon.pid` and logs in `.bedrock/ledger-daemon.log`.
 
 ### Using a Custom Docker Image
 
@@ -123,7 +142,7 @@ docker_image = "your-registry/custom-rippled:v1.0.0"
 
 **Requirements for custom images:**
 - Must expose ports 6006 (WebSocket), 5005 (RPC), 51235 (Peer)
-- Must accept genesis.json mounted at `/genesis.json`
+- Must accept config files mounted appropriately
 - Must run rippled on startup
 
 ## Common Workflows
@@ -179,8 +198,10 @@ docker rm bedrock-xrpl-node
 
 ### "genesis.json not found"
 
+This only applies to contract projects. Escrow and vault projects don't use genesis files.
+
 1. Ensure you ran `bedrock init` to create the project
-2. Check that `.bedrock/node-config/genesis.json` exists
+2. Check that `.bedrock/node-config/genesis.json` exists (contract projects only)
 3. Verify `config_dir` in `bedrock.toml`
 
 ### Port Already in Use

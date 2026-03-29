@@ -1,6 +1,6 @@
 # Building Contracts
 
-Bedrock compiles Rust smart contracts to WebAssembly (WASM) for deployment on XRPL. It wraps `cargo` with sensible defaults and a great developer experience.
+Bedrock compiles Rust code to WebAssembly (WASM) for deployment on XRPL. It wraps `cargo` with sensible defaults and a great developer experience.
 
 ## Overview
 
@@ -8,6 +8,7 @@ Bedrock's build process provides:
 
 - Smart defaults for WASM compilation
 - Automatic toolchain validation
+- Auto-detection of WASM target per primitive
 - Progress indicators and formatted output
 - Build optimization options
 - Artifact management
@@ -15,7 +16,7 @@ Bedrock's build process provides:
 ## Build Command
 
 ```bash
-bedrock build
+bedrock build [flags]
 ```
 
 **Flags:**
@@ -23,14 +24,32 @@ bedrock build
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--release` | `-r` | Build in release mode (optimized) | `true` |
+| `--type` | | Build specific primitive (contract, escrow, vault) | all |
+
+By default, `bedrock build` builds all primitives configured in the project. Use `--type` to build only one:
+
+```bash
+bedrock build                    # Build all primitives
+bedrock build --type contract    # Build only contract
+bedrock build --type escrow      # Build only escrow
+bedrock build --type vault       # Build only vault
+```
 
 **What it does:**
 
 1. Validates Rust toolchain (cargo, rustc)
-2. Ensures `wasm32-unknown-unknown` target is installed
+2. Ensures the correct WASM target is installed for each primitive
 3. Reads build configuration from `bedrock.toml`
 4. Compiles Rust to WASM using cargo
 5. Reports build results (path, size, duration)
+
+### Build Targets per Primitive
+
+| Primitive | WASM Target | Rust Edition |
+|-----------|-------------|--------------|
+| Contract | `wasm32-unknown-unknown` | 2021 |
+| Escrow | `wasm32v1-none` | 2024 |
+| Vault | `wasm32v1-none` | 2024 |
 
 ## Build Modes
 
@@ -175,13 +194,16 @@ if !condition {
 
 ## Toolchain Requirements
 
-### Installing the WASM Target
+### Installing the WASM Targets
 
 Bedrock automatically installs the WASM target if missing:
 
 ```bash
-# This happens automatically, but you can also run manually:
+# For contracts
 rustup target add wasm32-unknown-unknown
+
+# For escrows and vaults
+rustup target add wasm32v1-none
 ```
 
 ### Verifying Toolchain
@@ -190,6 +212,7 @@ rustup target add wasm32-unknown-unknown
 rustc --version                                    # 1.70.0 or later
 cargo --version                                    # 1.70.0 or later
 rustup target list | grep wasm32-unknown-unknown   # (installed)
+rustup target list | grep wasm32v1-none            # (installed, for escrow/vault)
 ```
 
 ## Under the Hood

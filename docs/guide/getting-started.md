@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide walks you through installing Bedrock and creating your first XRPL smart contract project.
+This guide walks you through installing Bedrock and creating your first XRPL project.
 
 ## Prerequisites
 
@@ -58,159 +58,113 @@ First run detected - installing JavaScript dependencies...
 
 This takes ~10-15 seconds and only happens once. Dependencies are cached in `~/.cache/bedrock/modules/`.
 
-## Create Your First Project
+## Choose Your Primitive
 
-### 1. Initialize a Project
+Bedrock supports three XRPL primitives. Each has its own project structure, build target, and deployment flow:
 
-```bash
-bedrock init my-contract
-cd my-contract
-```
+| Primitive | Description | WASM Entry Points |
+|-----------|-------------|-------------------|
+| **Smart Contract** | Custom logic via `ContractCreate`/`ContractCall` | `@xrpl-function` annotated functions |
+| **Smart Escrow** | Conditional payments via `EscrowCreate`/`EscrowFinish` | `finish()` |
+| **Smart Vault** | Asset custody via `VaultCreate`/`VaultDeposit`/`VaultWithdraw` | `on_deposit()`, `on_withdraw()` |
 
-This creates the following structure:
-
-```
-my-contract/
-├── bedrock.toml          # Project configuration
-├── contract/
-│   ├── Cargo.toml        # Rust package manifest
-│   └── src/
-│       └── lib.rs        # Smart contract boilerplate
-```
-
-### 2. Explore the Contract
-
-The generated `contract/src/lib.rs` contains a basic contract:
-
-```rust
-#![cfg_attr(target_arch = "wasm32", no_std)]
-
-#[cfg(not(target_arch = "wasm32"))]
-extern crate std;
-
-use xrpl_wasm_macros::wasm_export;
-use xrpl_wasm_std::host::trace::trace;
-
-/// @xrpl-function hello
-#[wasm_export]
-fn hello() -> i32 {
-    let _ = trace("Hello from XRPL Smart Contract!");
-    0
-}
-```
-
-### 3. Build the Contract
+### Initialize a Project
 
 ```bash
+# Interactive mode — prompts you to select a primitive
+bedrock init my-project
+
+# Or specify directly
+bedrock init my-contract --primitives contract
+bedrock init my-escrow --primitives escrow
+bedrock init my-vault --primitives vault
+
+# With a specific template
+bedrock init my-vault --primitives vault --template vault-whitelist
+
+# Multiple primitives in one project
+bedrock init my-project --primitives contract,escrow
+```
+
+In interactive mode, Bedrock presents a menu:
+
+```
+Select a primitive:
+
+  1. Contract  - Custom Rust WASM logic (ContractCreate/ContractCall)
+  2. Escrow    - Conditional payments with WASM conditions (EscrowCreate/EscrowFinish)
+  3. Vault     - Asset custody with WASM deposit/withdraw logic (VaultCreate/VaultDeposit/VaultWithdraw)
+```
+
+### Adding Primitives Later
+
+You can add a new primitive to an existing project at any time:
+
+```bash
+bedrock add escrow
+bedrock add vault --template vault-whitelist
+bedrock add contract --template token
+```
+
+## Quick Start by Primitive
+
+### Smart Contract
+
+```bash
+bedrock init my-contract --primitives contract && cd my-contract
+bedrock node start
 bedrock build
-```
-
-This compiles your Rust contract to optimized WebAssembly:
-
-```
-Building smart contract...
-   Mode: Release (optimized)
-   Source: contract/src/lib.rs
-
-✓ Build completed successfully!
-
-Output:   contract/target/wasm32-unknown-unknown/release/my_contract.wasm
-Size:     156.4 KB
-Duration: 5.1s
-```
-
-### 4. Start a Local Node (Optional)
-
-For local development, start a Docker-based XRPL node:
-
-```bash
-bedrock node start
-```
-
-This exposes:
-- WebSocket: `ws://localhost:6006`
-- Faucet: `http://localhost:8080/faucet`
-
-### 5. Deploy Your Contract
-
-```bash
-# Deploy to local node
 bedrock deploy --network local
-
-# Or deploy to alphanet (testnet)
-bedrock deploy --network alphanet
+# Note the contract address and wallet seed
+bedrock call <contract> hello --wallet <seed> --network local
 ```
 
-The deploy command automatically:
-1. Builds the contract (if needed)
-2. Generates the ABI (if needed)
-3. Deploys to the network
+See the full guide: **[Building Contracts](/guide/building-contracts)**, **[ABI Generation](/guide/abi-generation)**, **[Deploying & Calling](/guide/deployment-and-calling)**
 
-Save the output - it contains your **wallet seed** and **contract address**.
-
-### 6. Call Your Contract
+### Smart Escrow
 
 ```bash
-bedrock call <contract-address> hello \
-  --wallet <seed> \
-  --network local
-```
-
-## Project Configuration
-
-The `bedrock.toml` file configures your project:
-
-```toml
-[project]
-name = "my-contract"
-version = "0.1.0"
-
-[build]
-source = "contract/src/lib.rs"
-target = "wasm32-unknown-unknown"
-
-[local_node]
-config_dir = ".bedrock/node-config"
-docker_image = "transia/alphanet:latest"
-
-[networks.local]
-url = "ws://localhost:6006"
-network_id = 63456
-faucet_url = "http://localhost:8080/faucet"
-
-[networks.alphanet]
-url = "wss://alphanet.nerdnest.xyz"
-network_id = 21465
-faucet_url = "https://alphanet.faucet.nerdnest.xyz/accounts"
-```
-
-## Development Workflow
-
-A typical development loop looks like:
-
-```bash
-# Terminal 1: Start local node
+bedrock init my-escrow --primitives escrow && cd my-escrow
 bedrock node start
-
-# Terminal 2: Develop and test
-bedrock build                                         # Build contract
-bedrock deploy --network local                        # Deploy to local node
-bedrock call <contract> hello --wallet <seed> --network local  # Test
-
-# Make changes to contract/src/lib.rs...
-bedrock deploy --network local                        # Redeploy (auto-rebuilds)
+bedrock build
+bedrock escrow deploy --destination <addr> --amount 1000000 --wallet <seed> --network local
+bedrock escrow status <owner> <sequence> --network local
+bedrock escrow finish <owner> <sequence> --wallet <seed> --network local
 ```
 
-When ready for testnet:
+See the full guide: **[Smart Escrows](/guide/smart-escrows)**
+
+### Smart Vault
 
 ```bash
-bedrock deploy --network alphanet
+bedrock init my-vault --primitives vault && cd my-vault
+bedrock node start
+bedrock build
+bedrock vault deploy --asset XRP --wallet <seed> --network local
+bedrock vault deposit <vault-id> --amount 1000000 --wallet <seed> --network local
+bedrock vault status <vault-id> --network local
+```
+
+See the full guide: **[Smart Vaults](/guide/smart-vaults)**
+
+## Building
+
+```bash
+# Build all primitives in the project
+bedrock build
+
+# Build a specific primitive
+bedrock build --type contract
+bedrock build --type escrow
+bedrock build --type vault
 ```
 
 ## Next Steps
 
-- [Building Contracts](/guide/building-contracts) - Deep dive into the build system
-- [ABI Generation](/guide/abi-generation) - Learn the annotation syntax
-- [Deploying & Calling](/guide/deployment-and-calling) - Full deployment guide
-- [Local Node](/guide/local-node) - Configure your local environment
-- [Wallet Management](/guide/wallet) - Secure wallet handling
+- **[Building Contracts](/guide/building-contracts)** - Deep dive into the contract build system
+- **[ABI Generation](/guide/abi-generation)** - Learn the annotation syntax (contracts)
+- **[Deploying & Calling](/guide/deployment-and-calling)** - Full contract deployment guide
+- **[Smart Escrows](/guide/smart-escrows)** - Conditional payments with WASM logic
+- **[Smart Vaults](/guide/smart-vaults)** - Asset custody with WASM logic
+- **[Local Node](/guide/local-node)** - Configure your local environment
+- **[Wallet Management](/guide/wallet)** - Secure wallet handling

@@ -2,38 +2,64 @@
 
 > The foundation for XRPL smart contract development
 
-Bedrock is a developer CLI tool for building, deploying, and interacting with XRPL (XRP Ledger) smart contracts written in Rust. Think Foundry, but for XRPL.
+Bedrock is a developer CLI tool for building, deploying, and interacting with XRPL (XRP Ledger) smart contracts, smart escrows, and smart vaults written in Rust. Think Foundry, but for XRPL.
 
 ## Quick Summary
 
-Bedrock compiles Rust smart contracts to WebAssembly (WASM), deploys them to XRPL networks, and enables interaction with deployed contracts. It handles the complete development lifecycle including local testing with Docker-based nodes.
+Bedrock compiles Rust code to WebAssembly (WASM) and deploys it to XRPL networks. It supports three primitives:
+
+- **Smart Contract** — Custom WASM logic via ContractCreate/ContractCall
+- **Smart Escrow** — Conditional payments with WASM conditions via EscrowCreate/EscrowFinish
+- **Smart Vault** — Asset custody with WASM deposit/withdraw logic via VaultCreate/VaultDeposit/VaultWithdraw
 
 ## Core Commands
 
 ### Project Setup
-- `bedrock init <name>` - Create a new smart contract project with boilerplate
+- `bedrock init <name>` - Create a new project (interactive primitive selection)
+- `bedrock init <name> --primitives contract` - Create a smart contract project
+- `bedrock init <name> --primitives escrow` - Create a smart escrow project
+- `bedrock init <name> --primitives vault` - Create a smart vault project
+- `bedrock init <name> -p contract,escrow` - Multiple primitives in one project
+- `bedrock init <name> -p vault -t vault-whitelist` - With a specific template
+- `bedrock add <primitive>` - Add a primitive to an existing project
 
 ### Building
-- `bedrock build` - Compile Rust contract to WASM (release mode, optimized)
+- `bedrock build` - Compile all primitives to WASM (release mode)
+- `bedrock build --type contract` - Build only contract
+- `bedrock build --type escrow` - Build only escrow
+- `bedrock build --type vault` - Build only vault
 - `bedrock build --release=false` - Build in debug mode (faster, larger output)
 
-### Deployment
+### Smart Contract Deployment & Interaction
 - `bedrock deploy` - Deploy contract (auto-builds and generates ABI)
 - `bedrock deploy --network local` - Deploy to local Docker node
 - `bedrock deploy --network alphanet` - Deploy to XRPL alphanet testnet
 - `bedrock deploy --wallet <seed>` - Use specific wallet for deployment
 - `bedrock deploy --skip-build` - Skip automatic rebuild
 - `bedrock deploy --skip-abi` - Skip ABI generation
-
-### Contract Interaction
 - `bedrock call <contract> <function>` - Call a contract function
 - `bedrock call <contract> <function> --params '{"key":"value"}'` - Call with JSON parameters
 - `bedrock call <contract> <function> --params-file params.json` - Parameters from file
 - `bedrock call <contract> <function> --gas 1000000` - Set computation allowance
 - `bedrock call <contract> <function> --wallet <seed>` - Specify wallet (required)
 
+### Smart Escrow Commands
+- `bedrock escrow deploy --destination <addr> --amount <drops> --wallet <seed>` - Create escrow
+- `bedrock escrow deploy --cancel-after <epoch> --finish-after <epoch>` - With time constraints
+- `bedrock escrow finish <owner> <sequence> --wallet <seed>` - Release escrow
+- `bedrock escrow cancel <owner> <sequence> --wallet <seed>` - Cancel escrow
+- `bedrock escrow status <owner> <sequence>` - Query escrow status
+
+### Smart Vault Commands
+- `bedrock vault deploy --asset XRP --wallet <seed>` - Create XRP vault
+- `bedrock vault deploy --asset USD --issuer <addr> --wallet <seed>` - Create IOU vault
+- `bedrock vault deploy --max-capacity <amount>` - With capacity limit
+- `bedrock vault deposit <vault-id> --amount <drops> --wallet <seed>` - Deposit into vault
+- `bedrock vault withdraw <vault-id> --amount <drops> --destination <addr> --wallet <seed>` - Withdraw
+- `bedrock vault status <vault-id>` - Query vault status
+
 ### Local Node Management
-- `bedrock node start` - Start local XRPL node in Docker
+- `bedrock node start` - Start local XRPL node in Docker (auto-detects project type)
 - `bedrock node stop` - Stop the local node
 - `bedrock node status` - Check if node is running
 - `bedrock node logs` - View node logs
@@ -44,6 +70,8 @@ Bedrock compiles Rust smart contracts to WebAssembly (WASM), deploys them to XRP
 - `bedrock jade list` - List all stored wallets
 - `bedrock jade export <name>` - Export wallet seed and address
 - `bedrock jade remove <name>` - Delete a wallet
+
+Wallet names can be used in place of seeds in `--wallet` flags across all commands.
 
 ### Utilities
 - `bedrock clean` - Clean cached JS modules and dependencies
@@ -60,34 +88,73 @@ Bedrock compiles Rust smart contracts to WebAssembly (WASM), deploys them to XRP
 - Faucet: `https://alphanet.faucet.nerdnest.xyz/accounts`
 - Network ID: 21465
 
-## Project Structure
+## Project Structures
 
+### Smart Contract Project
 ```
 my-contract/
-├── bedrock.toml          # Project configuration
+├── bedrock.toml
 ├── contract/
-│   ├── Cargo.toml        # Rust dependencies
+│   ├── Cargo.toml
 │   └── src/
-│       └── lib.rs        # Smart contract code
+│       └── lib.rs
+├── .bedrock/node-config/
+│   ├── genesis.json
+│   ├── xrpld.cfg
+│   └── validators.txt
+├── .wallets/
 └── abi.json              # Generated ABI (after deploy)
+```
+
+### Smart Escrow Project
+```
+my-escrow/
+├── bedrock.toml
+├── escrow/
+│   ├── Cargo.toml
+│   └── src/
+│       └── lib.rs
+├── .bedrock/node-config/
+│   ├── xrpld.cfg
+│   └── validators.txt
+└── .wallets/
+```
+
+### Smart Vault Project
+```
+my-vault/
+├── bedrock.toml
+├── vault/
+│   ├── Cargo.toml
+│   └── src/
+│       └── lib.rs
+├── .bedrock/node-config/
+│   ├── xrpld.cfg
+│   └── validators.txt
+└── .wallets/
 ```
 
 ## Configuration (bedrock.toml)
 
+### Contract Project
 ```toml
 [project]
 name = "my-contract"
 version = "0.1.0"
-authors = ["Your Name"]
+primitives = ["contract"]
 
 [build]
 source = "contract/src/lib.rs"
 output = "contract/target/wasm32-unknown-unknown/release"
 target = "wasm32-unknown-unknown"
 
+[contracts.main]
+source = "contract/src/lib.rs"
+abi = "contract/build/abi.json"
+
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "transia/alphanet:latest"
+docker_image = "transia/cluster:latest"
 ledger_interval = 1000
 
 [networks.local]
@@ -99,6 +166,36 @@ faucet_url = "http://localhost:8080/faucet"
 url = "wss://alphanet.nerdnest.xyz"
 network_id = 21465
 faucet_url = "https://alphanet.faucet.nerdnest.xyz/accounts"
+```
+
+### Escrow Project
+```toml
+[project]
+name = "my-escrow"
+version = "0.1.0"
+primitives = ["escrow"]
+
+[escrows.main]
+source = "escrow/src/lib.rs"
+output = "escrow/target/wasm32v1-none/release"
+
+[local_node]
+docker_image = "willemolding/rippled:smart-vaults.0"
+```
+
+### Vault Project
+```toml
+[project]
+name = "my-vault"
+version = "0.1.0"
+primitives = ["vault"]
+
+[vaults.main]
+source = "vault/src/lib.rs"
+output = "vault/target/wasm32v1-none/release"
+
+[local_node]
+docker_image = "willemolding/rippled:smart-vaults.0"
 ```
 
 ## Smart Contract Development
@@ -122,7 +219,7 @@ fn hello() -> i32 {
 }
 ```
 
-### ABI Annotations
+### ABI Annotations (Contracts Only)
 
 Functions are documented with JSDoc-style comments:
 - `@xrpl-function <name>` - Mark function for export
@@ -130,19 +227,97 @@ Functions are documented with JSDoc-style comments:
 - `@return <TYPE>` - Define return type
 - `@flag <0|1>` - 0=required (default), 1=optional
 
-### Supported XRPL Types
+### Supported XRPL Types (Contracts)
 
 Integer types: `UINT8`, `UINT16`, `UINT32`, `UINT64`, `UINT128`, `UINT256`
 Specialized: `VL` (bytes/string), `ACCOUNT` (address), `AMOUNT`, `CURRENCY`, `ISSUE`
 
-## Typical Workflow
+## Smart Escrow Development
 
-1. Initialize project: `bedrock init my-contract && cd my-contract`
+### Basic Escrow Structure
+
+```rust
+#![cfg_attr(target_arch = "wasm32", no_std)]
+
+#[cfg(not(target_arch = "wasm32"))]
+extern crate std;
+
+use xrpl_wasm_stdlib::host::trace::trace;
+
+#[unsafe(no_mangle)]
+pub extern "C" fn finish() -> i32 {
+    let _ = trace("Hello World!");
+    1 // Return 1 to release, 0 to keep locked
+}
+```
+
+### Escrow Templates
+- `escrow-hello` (default) - Minimal escrow that always releases
+- `escrow-oracle` - Checks oracle price before releasing
+
+## Smart Vault Development
+
+### Basic Vault Structure
+
+```rust
+#![cfg_attr(target_arch = "wasm32", no_std)]
+
+#[cfg(not(target_arch = "wasm32"))]
+extern crate std;
+
+use xrpl_wasm_stdlib::host::trace::trace;
+
+#[unsafe(no_mangle)]
+pub extern "C" fn on_deposit() -> i32 {
+    let _ = trace("Deposit received!");
+    1 // Return 1 to allow, 0 to deny
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn on_withdraw() -> i32 {
+    let _ = trace("Withdrawal requested!");
+    1 // Return 1 to allow, 0 to deny
+}
+```
+
+### Vault Templates
+- `vault-hello` (default) - Allows all deposits and withdrawals
+- `vault-whitelist` - Restricts withdrawals to whitelisted addresses
+
+## Build Targets
+
+| Primitive | WASM Target | Rust Edition | Crate |
+|-----------|-------------|--------------|-------|
+| Contract | `wasm32-unknown-unknown` | 2021 | `xrpl_wasm_std` + `xrpl_wasm_macros` |
+| Escrow | `wasm32v1-none` | 2024 | `xrpl_wasm_stdlib` |
+| Vault | `wasm32v1-none` | 2024 | `xrpl_wasm_stdlib` |
+
+## Typical Workflows
+
+### Smart Contract
+1. `bedrock init my-contract --primitives contract && cd my-contract`
 2. Edit contract: `contract/src/lib.rs`
-3. Start local node: `bedrock node start`
-4. Deploy: `bedrock deploy --network local`
-5. Call functions: `bedrock call <contract> <function> --wallet <seed>`
-6. Deploy to testnet: `bedrock deploy --network alphanet`
+3. `bedrock node start`
+4. `bedrock deploy --network local`
+5. `bedrock call <contract> <function> --wallet <seed> --network local`
+6. `bedrock deploy --network alphanet`
+
+### Smart Escrow
+1. `bedrock init my-escrow --primitives escrow && cd my-escrow`
+2. Edit escrow logic: `escrow/src/lib.rs`
+3. `bedrock node start`
+4. `bedrock build`
+5. `bedrock escrow deploy --destination <addr> --amount 1000000 --wallet <seed> --network local`
+6. `bedrock escrow finish <owner> <seq> --wallet <seed> --network local`
+
+### Smart Vault
+1. `bedrock init my-vault --primitives vault && cd my-vault`
+2. Edit vault logic: `vault/src/lib.rs`
+3. `bedrock node start`
+4. `bedrock build`
+5. `bedrock vault deploy --asset XRP --wallet <seed> --network local`
+6. `bedrock vault deposit <vault-id> --amount 1000000 --wallet <seed> --network local`
+7. `bedrock vault withdraw <vault-id> --amount 500000 --destination <addr> --wallet <seed> --network local`
 
 ## Transaction Fees
 
@@ -153,13 +328,16 @@ Specialized: `VL` (bytes/string), `ACCOUNT` (address), `AMOUNT`, `CURRENCY`, `IS
 
 - Go 1.21+ (for building Bedrock)
 - Node.js 18+ (for XRPL transaction handling)
-- Rust with wasm32-unknown-unknown target
+- Rust with wasm32-unknown-unknown target (contracts) and wasm32v1-none target (escrow/vault)
 - Docker (optional, for local node)
 
 ## Documentation
 
-- [Building Contracts](docs/building-contracts.md)
-- [Deployment and Calling](docs/deployment-and-calling.md)
-- [ABI Generation](docs/abi-generation.md)
-- [Local Node](docs/local-node.md)
-- [Wallet Management](docs/wallet.md)
+- [Getting Started](docs/guide/getting-started.md)
+- [Building Contracts](docs/guide/building-contracts.md)
+- [ABI Generation](docs/guide/abi-generation.md)
+- [Deploying & Calling](docs/guide/deployment-and-calling.md)
+- [Smart Escrows](docs/guide/smart-escrows.md)
+- [Smart Vaults](docs/guide/smart-vaults.md)
+- [Local Node](docs/guide/local-node.md)
+- [Wallet Management](docs/guide/wallet.md)

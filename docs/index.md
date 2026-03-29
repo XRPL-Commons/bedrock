@@ -1,29 +1,37 @@
 ---
-description: A CLI tool for developing, deploying, and interacting with XRPL smart contracts written in Rust. Think Foundry, but for XRPL.
+description: A CLI tool for developing, deploying, and interacting with XRPL smart contracts, smart escrows, and smart vaults written in Rust. Think Foundry, but for XRPL.
 ---
 
 # Introduction to Bedrock
 
 <DownloadLLMsFullDoc />
 
-Bedrock is a developer tool for building, deploying, and interacting with XRPL smart contracts written in Rust. Think **Foundry**, but for XRPL.
+Bedrock is a developer tool for building, deploying, and interacting with XRPL smart contracts, smart escrows, and smart vaults written in Rust. Think **Foundry**, but for XRPL.
 
 ## What is Bedrock?
 
-Bedrock provides a complete CLI workflow for XRPL smart contract development. It compiles Rust contracts to WebAssembly and handles deployment to XRPL networks. It includes:
+Bedrock provides a complete CLI workflow for XRPL smart contract development. It compiles Rust code to WebAssembly and handles deployment to XRPL networks. Bedrock supports three XRPL primitives:
 
-- **Build System** - Compile Rust smart contracts to optimized WebAssembly
+- **Smart Contract** — Custom Rust WASM logic deployed via `ContractCreate`/`ContractCall`
+- **Smart Escrow** — Conditional payments with WASM conditions via `EscrowCreate`/`EscrowFinish`
+- **Smart Vault** — Asset custody with WASM deposit/withdraw logic via `VaultCreate`/`VaultDeposit`/`VaultWithdraw`
+
+It includes:
+
+- **Build System** - Compile Rust code to optimized WebAssembly for all three primitives
 - **Smart Deployment** - Auto-build, ABI generation, and deployment in one command
 - **Contract Interaction** - Call deployed contract functions with typed parameters
+- **Escrow Management** - Deploy, finish, cancel, and inspect smart escrows
+- **Vault Management** - Deploy vaults, deposit, withdraw, and check status
 - **Local Node** - Manage a local XRPL test network via Docker
-- **ABI Generation** - Automatic ABI extraction from Rust code annotations
+- **ABI Generation** - Automatic ABI extraction from Rust code annotations (contracts)
 - **Wallet Management** - Encrypted wallet storage with Jade
 
 ## Why Use Bedrock?
 
-Building and deploying XRPL smart contracts involves multiple tools and manual steps. Bedrock abstracts away the complexity of:
+Building and deploying XRPL smart primitives involves multiple tools and manual steps. Bedrock abstracts away the complexity of:
 
-- **WASM compilation** - Sensible defaults for Rust-to-WASM compilation
+- **WASM compilation** - Sensible defaults for Rust-to-WASM compilation across all primitives
 - **ABI management** - Auto-generated from code annotations, no manual maintenance
 - **Deployment orchestration** - One command to build, generate ABI, and deploy
 - **Network configuration** - Pre-configured for local and alphanet environments
@@ -31,25 +39,29 @@ Building and deploying XRPL smart contracts involves multiple tools and manual s
 
 ## Key Features
 
+### Three Primitives
+
+Build smart contracts, smart escrows, and smart vaults — each with its own WASM logic, deployment flow, and interaction commands.
+
 ### Build System
 
-Compile Rust contracts to optimized WebAssembly with a single command. Release builds produce compact WASM files (~156 KB) ready for deployment.
+Compile Rust code to optimized WebAssembly with a single command. Bedrock auto-detects the WASM target for each primitive (`wasm32-unknown-unknown` for contracts, `wasm32v1-none` for escrows and vaults).
 
 ### Smart Deployment
 
-`bedrock deploy` automatically builds your contract, generates the ABI, and deploys to the network. No manual steps required.
+`bedrock deploy` automatically builds your contract, generates the ABI, and deploys. For escrows and vaults, dedicated `bedrock escrow deploy` and `bedrock vault deploy` commands handle their specific deployment flows.
 
 ### Local Development
 
-Spin up a local XRPL node in Docker for fast iteration. Build, deploy, and test your contracts without waiting for testnet confirmations.
+Spin up a local XRPL node in Docker for fast iteration. Bedrock auto-detects your project type and configures the node accordingly.
 
 ### Automatic ABI Generation
 
-Annotate your Rust functions with JSDoc-style comments and Bedrock extracts the ABI automatically. No separate ABI files to maintain.
+Annotate your Rust functions with JSDoc-style comments and Bedrock extracts the ABI automatically. No separate ABI files to maintain. (Applies to smart contracts only — escrows and vaults don't require ABI.)
 
 ### Wallet Management
 
-Create, import, and manage XRPL wallets with AES-256-GCM encryption. Your seeds are never stored in plaintext.
+Create, import, and manage XRPL wallets with AES-256-GCM encryption. Your seeds are never stored in plaintext. Use wallet names in place of seeds in any `--wallet` flag.
 
 ## Architecture Overview
 
@@ -60,9 +72,11 @@ bedrock CLI (Go)
        |
        ├── Build System ──────── cargo (Rust → WASM)
        |
-       ├── ABI Generator ─────── Parses Rust annotations
+       ├── ABI Generator ─────── Parses Rust annotations (contracts)
        |
-       ├── Deployer ──────────── Embedded JS (deploy.js)
+       ├── Contract Deployer ─── Embedded JS (deploy.js)
+       ├── Escrow Operator ───── Embedded JS (escrow_deploy/finish/cancel.js)
+       ├── Vault Operator ────── Embedded JS (vault_deploy/deposit/withdraw.js)
        |
        ├── Caller ────────────── Embedded JS (call.js)
        |
@@ -93,11 +107,13 @@ Ready to get started? Here's the recommended path:
 
 1. **[Getting Started](/guide/getting-started)** - Install Bedrock and create your first project
 2. **[Building Contracts](/guide/building-contracts)** - Understand the build system
-3. **[ABI Generation](/guide/abi-generation)** - Learn the annotation syntax
+3. **[ABI Generation](/guide/abi-generation)** - Learn the annotation syntax (contracts)
 4. **[Deploying & Calling](/guide/deployment-and-calling)** - Deploy and interact with contracts
-5. **[Local Node](/guide/local-node)** - Set up a local development environment
-6. **[Wallet Management](/guide/wallet)** - Manage your XRPL wallets securely
-7. **[Commands Reference](/guide/commands-reference)** - Complete CLI reference
+5. **[Smart Escrows](/guide/smart-escrows)** - Create conditional payments with WASM logic
+6. **[Smart Vaults](/guide/smart-vaults)** - Build asset custody with WASM deposit/withdraw logic
+7. **[Local Node](/guide/local-node)** - Set up a local development environment
+8. **[Wallet Management](/guide/wallet)** - Manage your XRPL wallets securely
+9. **[Commands Reference](/guide/commands-reference)** - Complete CLI reference
 
 ## Community & Support
 
