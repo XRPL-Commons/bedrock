@@ -7,21 +7,54 @@ A quick lookup guide for common Bedrock operations.
 | Command | Purpose |
 |---------|---------|
 | `bedrock init <name>` | Create new project |
-| `bedrock build` | Compile contract to WASM |
-| `bedrock deploy` | Deploy contract |
+| `bedrock init <name> -p escrow` | Create escrow project |
+| `bedrock init <name> -p vault` | Create vault project |
+| `bedrock add <primitive>` | Add primitive to existing project |
+| `bedrock build` | Compile all primitives to WASM |
+| `bedrock build --type vault` | Build specific primitive |
+| `bedrock deploy` | Deploy smart contract |
 | `bedrock call <addr> <fn>` | Call contract function |
+| `bedrock escrow deploy` | Deploy smart escrow |
+| `bedrock escrow finish <owner> <seq>` | Release escrow |
+| `bedrock escrow cancel <owner> <seq>` | Cancel escrow |
+| `bedrock escrow status <owner> <seq>` | Check escrow status |
+| `bedrock vault deploy` | Deploy smart vault |
+| `bedrock vault deposit <id>` | Deposit into vault |
+| `bedrock vault withdraw <id>` | Withdraw from vault |
+| `bedrock vault status <id>` | Check vault status |
 | `bedrock node start/stop` | Manage local node |
 | `bedrock jade new <name>` | Create wallet |
 | `bedrock faucet` | Get testnet funds |
 | `bedrock clean` | Clean build artifacts |
 
-## Quick Start
+## Quick Start — Smart Contract
 
 ```bash
-bedrock init my-app && cd my-app
+bedrock init my-app --primitives contract && cd my-app
 bedrock node start
 bedrock deploy --network local
 bedrock call <contract> hello --wallet <seed> --network local
+```
+
+## Quick Start — Smart Escrow
+
+```bash
+bedrock init my-escrow --primitives escrow && cd my-escrow
+bedrock node start
+bedrock build
+bedrock escrow deploy --destination <addr> --amount 1000000 --wallet <seed> --network local
+bedrock escrow finish <owner> <seq> --wallet <seed> --network local
+```
+
+## Quick Start — Smart Vault
+
+```bash
+bedrock init my-vault --primitives vault && cd my-vault
+bedrock node start
+bedrock build
+bedrock vault deploy --asset XRP --wallet <seed> --network local
+bedrock vault deposit <vault-id> --amount 1000000 --wallet <seed> --network local
+bedrock vault withdraw <vault-id> --amount 500000 --destination <addr> --wallet <seed> --network local
 ```
 
 ## Networks
@@ -31,7 +64,7 @@ bedrock call <contract> hello --wallet <seed> --network local
 | Local | `ws://localhost:6006` | `http://localhost:8080/faucet` |
 | Alphanet | `wss://alphanet.nerdnest.xyz` | `https://alphanet.faucet.nerdnest.xyz/accounts` |
 
-## Deploy Options
+## Deploy Options (Contracts)
 
 ```bash
 bedrock deploy                      # Default (alphanet, auto-build)
@@ -40,7 +73,30 @@ bedrock deploy --wallet <seed>      # Specific wallet
 bedrock deploy --skip-build         # Skip rebuild
 ```
 
-## Call Options
+## Escrow Deploy Options
+
+```bash
+bedrock escrow deploy \
+  --destination <addr>              # Beneficiary (required)
+  --amount <drops>                  # Amount (required)
+  --wallet <seed>                   # Wallet seed or jade name
+  --network local                   # Target network
+  --cancel-after <epoch>            # Cancel after time
+  --finish-after <epoch>            # Finish after time
+```
+
+## Vault Deploy Options
+
+```bash
+bedrock vault deploy \
+  --asset XRP                       # Asset (default: XRP)
+  --issuer <addr>                   # Issuer (for non-XRP)
+  --max-capacity <amount>           # Max capacity
+  --wallet <seed>                   # Wallet seed or jade name
+  --network local                   # Target network
+```
+
+## Call Options (Contracts)
 
 ```bash
 bedrock call <contract> <function> --wallet <seed>
@@ -60,7 +116,9 @@ bedrock jade export <name>          # Show seed
 bedrock jade remove <name>          # Delete wallet
 ```
 
-## ABI Annotations
+Wallet names can be used in `--wallet` flags across all commands.
+
+## ABI Annotations (Contracts Only)
 
 ```rust
 /// @xrpl-function function_name
@@ -70,7 +128,7 @@ bedrock jade remove <name>          # Delete wallet
 /// @flag 1  // optional
 ```
 
-## XRPL Types
+## XRPL Types (Contracts)
 
 | Type | Use for |
 |------|---------|
@@ -81,47 +139,37 @@ bedrock jade remove <name>          # Delete wallet
 | `CURRENCY` | Currency codes |
 | `ISSUE` | Currency+issuer |
 
-## Fees
+## Build Targets
 
-| Operation | Fee |
-|-----------|-----|
-| Deploy (ContractCreate) | 100 XRP |
-| Call (ContractCall) | 1 XRP |
+| Primitive | WASM Target | Rust Edition |
+|-----------|-------------|--------------|
+| Contract | `wasm32-unknown-unknown` | 2021 |
+| Escrow | `wasm32v1-none` | 2024 |
+| Vault | `wasm32v1-none` | 2024 |
 
-## Contract Template
+## WASM Entry Points
 
-```rust
-#![cfg_attr(target_arch = "wasm32", no_std)]
+| Primitive | Function | Returns |
+|-----------|----------|---------|
+| Contract | `@xrpl-function` annotated | Status code |
+| Escrow | `finish()` | `1` = release, `0` = keep locked |
+| Vault | `on_deposit()` | `1` = allow, `0` = deny |
+| Vault | `on_withdraw()` | `1` = allow, `0` = deny |
 
-#[cfg(not(target_arch = "wasm32"))]
-extern crate std;
+## Templates
 
-use xrpl_wasm_macros::wasm_export;
-use xrpl_wasm_std::host::trace::trace;
-
-/// @xrpl-function my_func
-#[wasm_export]
-fn my_func() -> i32 {
-    let _ = trace("Hello from XRPL Smart Contract!");
-    0
-}
-```
-
-## File Structure
-
-```
-project/
-├── bedrock.toml      # Config
-├── contract/src/lib.rs  # Contract code
-├── abi.json          # Generated ABI
-└── target/wasm32.../release/*.wasm
-```
+| Primitive | Templates |
+|-----------|-----------|
+| Contract | `basic`, `token`, `nft`, `contract-escrow`, `counter` |
+| Escrow | `escrow-hello`, `escrow-oracle` |
+| Vault | `vault-hello`, `vault-whitelist` |
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| WASM target missing | `rustup target add wasm32-unknown-unknown` |
+| WASM target missing (contract) | `rustup target add wasm32-unknown-unknown` |
+| WASM target missing (escrow/vault) | `rustup target add wasm32v1-none` |
 | Node won't start | Check Docker: `docker ps` |
 | Deployment fails | Ensure 100+ XRP balance |
 | Modules not found | Check Node.js 18+: `node --version` |

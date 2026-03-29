@@ -62,6 +62,14 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Smart Escrows',
+        items: [{ text: 'Smart Escrows', link: '/guide/smart-escrows' }],
+      },
+      {
+        text: 'Smart Vaults',
+        items: [{ text: 'Smart Vaults', link: '/guide/smart-vaults' }],
+      },
+      {
         text: 'Infrastructure',
         items: [
           { text: 'Local Node', link: '/guide/local-node' },

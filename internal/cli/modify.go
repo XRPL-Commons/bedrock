@@ -67,6 +67,10 @@ func runModify(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w (run 'bedrock init' first)", err)
 	}
 
+	if !cfg.HasPrimitive("contract") {
+		return fmt.Errorf("modify is only available for smart contract projects")
+	}
+
 	networkCfg, ok := cfg.Networks[modifyNetwork]
 	if !ok {
 		if modifyNetwork == "local" {

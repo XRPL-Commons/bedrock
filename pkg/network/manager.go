@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -49,29 +47,6 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 		return fmt.Errorf("failed to pull image: %w", err)
 	}
 
-	// Resolve absolute path for config directory
-	configDir, err := filepath.Abs(opts.ConfigDir)
-	if err != nil {
-		return fmt.Errorf("failed to resolve config directory: %w", err)
-	}
-
-	// Check if genesis.json exists
-	genesisPath := filepath.Join(configDir, "genesis.json")
-	if _, err := os.Stat(genesisPath); os.IsNotExist(err) {
-		return fmt.Errorf("genesis.json not found in %s", configDir)
-	}
-
-	// Check for xrpld.cfg and validators.txt
-	xrpldCfgPath := filepath.Join(configDir, "xrpld.cfg")
-	if _, err := os.Stat(xrpldCfgPath); os.IsNotExist(err) {
-		return fmt.Errorf("xrpld.cfg not found in %s (run 'bedrock init' to generate)", configDir)
-	}
-
-	validatorsPath := filepath.Join(configDir, "validators.txt")
-	if _, err := os.Stat(validatorsPath); os.IsNotExist(err) {
-		return fmt.Errorf("validators.txt not found in %s (run 'bedrock init' to generate)", configDir)
-	}
-
 	// Configure port bindings
 	portBindings := nat.PortMap{
 		"6006/tcp":  []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: "6006"}},
@@ -79,26 +54,26 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 		"51235/tcp": []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: "51235"}},
 	}
 
-	// Create container with entrypoint override for xrpld standalone mode
-	resp, err := m.docker.ContainerCreate(ctx,
-		&container.Config{
-			Image:      opts.DockerImage,
-			Entrypoint: []string{"/app/xrpld"},
-			Cmd:        []string{"-a", "--ledgerfile", "/genesis.json", "--conf", "/opt/ripple/config/xrpld.cfg"},
-			ExposedPorts: nat.PortSet{
-				"6006/tcp":  struct{}{},
-				"5005/tcp":  struct{}{},
-				"51235/tcp": struct{}{},
-			},
+	// Create container using entrypoint/cmd/binds from config
+	containerCfg := &container.Config{
+		Image: opts.DockerImage,
+		Cmd:   opts.Cmd,
+		ExposedPorts: nat.PortSet{
+			"6006/tcp":  struct{}{},
+			"5005/tcp":  struct{}{},
+			"51235/tcp": struct{}{},
 		},
+	}
+	if len(opts.Entrypoint) > 0 {
+		containerCfg.Entrypoint = opts.Entrypoint
+	}
+
+	resp, err := m.docker.ContainerCreate(ctx,
+		containerCfg,
 		&container.HostConfig{
 			PortBindings: portBindings,
-			Binds: []string{
-				fmt.Sprintf("%s:/genesis.json:ro", genesisPath),
-				fmt.Sprintf("%s:/opt/ripple/config/xrpld.cfg:ro", xrpldCfgPath),
-				fmt.Sprintf("%s:/opt/ripple/config/validators.txt:ro", validatorsPath),
-			},
-			AutoRemove: false,
+			Binds:        opts.Binds,
+			AutoRemove:   false,
 		},
 		nil,
 		nil,

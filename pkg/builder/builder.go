@@ -19,27 +19,37 @@ func New(projectRoot string) *Builder {
 	return &Builder{projectRoot: projectRoot}
 }
 
-// Build compiles the Rust contract to WASM
+// Build compiles Rust source to WASM
 func (b *Builder) Build(ctx context.Context, opts BuildOptions) (*BuildResult, error) {
 	// Verify cargo is installed
 	if err := b.verifyToolchain(); err != nil {
 		return nil, err
 	}
 
-	// Ensure wasm32 target is installed
-	if err := b.ensureWasmTarget(ctx); err != nil {
-		return nil, fmt.Errorf("failed to add wasm32 target: %w", err)
+	// Determine target and source dir (defaults for backward compat)
+	target := opts.Target
+	if target == "" {
+		target = "wasm32-unknown-unknown"
+	}
+	sourceDir := opts.SourceDir
+	if sourceDir == "" {
+		sourceDir = "contract"
 	}
 
-	contractDir := filepath.Join(b.projectRoot, "contract")
+	// Ensure WASM target is installed
+	if err := b.ensureWasmTarget(ctx, target); err != nil {
+		return nil, fmt.Errorf("failed to add %s target: %w", target, err)
+	}
+
+	buildDir := filepath.Join(b.projectRoot, sourceDir)
 
 	// Check if Cargo.toml exists
-	if _, err := os.Stat(filepath.Join(contractDir, "Cargo.toml")); os.IsNotExist(err) {
-		return nil, fmt.Errorf("Cargo.toml not found in %s", contractDir)
+	if _, err := os.Stat(filepath.Join(buildDir, "Cargo.toml")); os.IsNotExist(err) {
+		return nil, fmt.Errorf("Cargo.toml not found in %s", buildDir)
 	}
 
 	// Build command
-	args := []string{"build", "--target", "wasm32-unknown-unknown"}
+	args := []string{"build", "--target", target}
 	if opts.Release {
 		args = append(args, "--release")
 	}
@@ -48,7 +58,7 @@ func (b *Builder) Build(ctx context.Context, opts BuildOptions) (*BuildResult, e
 	}
 
 	cmd := exec.CommandContext(ctx, "cargo", args...)
-	cmd.Dir = contractDir
+	cmd.Dir = buildDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -66,7 +76,7 @@ func (b *Builder) Build(ctx context.Context, opts BuildOptions) (*BuildResult, e
 		buildType = "release"
 	}
 
-	wasmPath := filepath.Join(contractDir, "target", "wasm32-unknown-unknown", buildType)
+	wasmPath := filepath.Join(buildDir, "target", target, buildType)
 
 	// Find the .wasm file
 	wasmFile, size, err := b.findWasmFile(wasmPath)
@@ -82,20 +92,29 @@ func (b *Builder) Build(ctx context.Context, opts BuildOptions) (*BuildResult, e
 	}, nil
 }
 
-// Clean removes build artifacts
-func (b *Builder) Clean(ctx context.Context) error {
-	contractDir := filepath.Join(b.projectRoot, "contract")
+// CleanDir removes build artifacts for a specific source directory
+func (b *Builder) CleanDir(ctx context.Context, sourceDir string) error {
+	dir := filepath.Join(b.projectRoot, sourceDir)
+
+	if _, err := os.Stat(filepath.Join(dir, "Cargo.toml")); os.IsNotExist(err) {
+		return nil // nothing to clean
+	}
 
 	cmd := exec.CommandContext(ctx, "cargo", "clean")
-	cmd.Dir = contractDir
+	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("cargo clean failed: %w", err)
+		return fmt.Errorf("cargo clean failed in %s: %w", sourceDir, err)
 	}
 
 	return nil
+}
+
+// Clean removes build artifacts (backward compat -- cleans contract dir)
+func (b *Builder) Clean(ctx context.Context) error {
+	return b.CleanDir(ctx, "contract")
 }
 
 // verifyToolchain checks if cargo and rustc are installed
@@ -109,9 +128,9 @@ func (b *Builder) verifyToolchain() error {
 	return nil
 }
 
-// ensureWasmTarget adds wasm32-unknown-unknown target if not present
-func (b *Builder) ensureWasmTarget(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, "rustup", "target", "add", "wasm32-unknown-unknown")
+// ensureWasmTarget adds the given WASM target if not present
+func (b *Builder) ensureWasmTarget(ctx context.Context, target string) error {
+	cmd := exec.CommandContext(ctx, "rustup", "target", "add", target)
 	if err := cmd.Run(); err != nil {
 		// Not fatal if rustup fails (target might already be installed)
 		return nil

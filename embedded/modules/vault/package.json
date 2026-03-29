@@ -1,0 +1,8 @@
+{
+  "name": "bedrock-vault-modules",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@willem-xrpl/xrpl": "4.6.0-smartvaults.1"
+  }
+}

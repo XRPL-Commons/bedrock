@@ -21,7 +21,7 @@ function buildFunctionsFromABI(abi, exportedFunctions) {
 
     const parameters = fn.parameters.map((param) => ({
       Parameter: {
-        ParameterName: Buffer.from(param.name).toString('hex').toUpperCase(),
+        ParameterFlag: param.flag,
         ParameterType: {
           type: param.type,
         },

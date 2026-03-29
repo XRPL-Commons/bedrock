@@ -81,8 +81,47 @@ func nodeStart(ctx context.Context, manager *network.Manager) error {
 	// Convert ledger interval from milliseconds to duration
 	ledgerInterval := time.Duration(cfg.LocalNode.LedgerInterval) * time.Millisecond
 
+	// Resolve absolute path for config directory
+	configDir, err := filepath.Abs(cfg.LocalNode.ConfigDir)
+	if err != nil {
+		return fmt.Errorf("failed to resolve config directory: %w", err)
+	}
+
+	// Use entrypoint/cmd/binds from config, or build defaults for backward compat
+	entrypoint := cfg.LocalNode.Entrypoint
+	cmdArgs := cfg.LocalNode.Cmd
+	binds := cfg.LocalNode.Binds
+
+	if len(entrypoint) == 0 && len(cmdArgs) == 0 {
+		// Backward compat: infer from available config files
+		genesisPath := filepath.Join(configDir, "genesis.json")
+		xrpldCfgPath := filepath.Join(configDir, "xrpld.cfg")
+		validatorsPath := filepath.Join(configDir, "validators.txt")
+
+		if _, statErr := os.Stat(genesisPath); statErr == nil {
+			// Contract mode: transia image with genesis file
+			entrypoint = []string{"/app/xrpld"}
+			cmdArgs = []string{"-a", "--ledgerfile", "/genesis.json", "--conf", "/opt/ripple/config/xrpld.cfg"}
+			binds = []string{
+				fmt.Sprintf("%s:/genesis.json:ro", genesisPath),
+				fmt.Sprintf("%s:/opt/ripple/config/xrpld.cfg:ro", xrpldCfgPath),
+				fmt.Sprintf("%s:/opt/ripple/config/validators.txt:ro", validatorsPath),
+			}
+		} else {
+			// Escrow/vault mode: standalone with rippled.cfg only
+			entrypoint = nil // use image default entrypoint
+			cmdArgs = []string{"--standalone", "--conf", "/var/lib/rippled/rippled.cfg"}
+			binds = []string{
+				fmt.Sprintf("%s:/var/lib/rippled/rippled.cfg:ro", xrpldCfgPath),
+			}
+		}
+	}
+
 	opts := network.StartOptions{
 		DockerImage:    cfg.LocalNode.DockerImage,
+		Entrypoint:     entrypoint,
+		Cmd:            cmdArgs,
+		Binds:          binds,
 		ConfigDir:      cfg.LocalNode.ConfigDir,
 		LedgerInterval: ledgerInterval,
 		RPCURL:         DefaultLocalRPCURL,

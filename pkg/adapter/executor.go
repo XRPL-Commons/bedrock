@@ -16,18 +16,25 @@ import (
 // Executor handles execution of embedded JavaScript modules
 type Executor struct {
 	modulesDir string
+	group      string
 	verbose    bool
 }
 
-// NewExecutor creates a new executor instance
+// NewExecutor creates a new executor for the contract module group (backward compat)
 func NewExecutor(verbose bool) (*Executor, error) {
-	dir, err := embedded.SetupModules()
+	return NewGroupExecutor("contract", verbose)
+}
+
+// NewGroupExecutor creates a new executor for a specific module group
+func NewGroupExecutor(group string, verbose bool) (*Executor, error) {
+	dir, err := embedded.SetupModuleGroup(group)
 	if err != nil {
-		return nil, fmt.Errorf("failed to setup modules: %w", err)
+		return nil, fmt.Errorf("failed to setup %s modules: %w", group, err)
 	}
 
 	return &Executor{
 		modulesDir: dir,
+		group:      group,
 		verbose:    verbose,
 	}, nil
 }
