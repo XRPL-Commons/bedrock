@@ -10,7 +10,7 @@ Bedrock is a developer tool for building, deploying, and interacting with XRPL s
 
 ## What is Bedrock?
 
-Bedrock provides a complete CLI workflow for XRPL smart contract development. It compiles Rust code to WebAssembly and handles deployment to XRPL networks. Bedrock supports three XRPL primitives:
+Bedrock provides a complete CLI workflow for XRPL smart features development. It compiles Rust code to WebAssembly and handles deployment to XRPL networks. Bedrock supports three XRPL primitives:
 
 - **Smart Contract** — Custom Rust WASM logic deployed via `ContractCreate`/`ContractCall`
 - **Smart Escrow** — Conditional payments with WASM conditions via `EscrowCreate`/`EscrowFinish`
@@ -87,9 +87,9 @@ bedrock CLI (Go)
 
 ## Supported Networks
 
-| Network | WebSocket | Faucet |
-|---------|-----------|--------|
-| Local | `ws://localhost:6006` | `http://localhost:8080/faucet` |
+| Network  | WebSocket                     | Faucet                                          |
+| -------- | ----------------------------- | ----------------------------------------------- |
+| Local    | `ws://localhost:6006`         | `http://localhost:8080/faucet`                  |
 | Alphanet | `wss://alphanet.nerdnest.xyz` | `https://alphanet.faucet.nerdnest.xyz/accounts` |
 
 ## Requirements

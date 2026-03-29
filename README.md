@@ -36,6 +36,14 @@ cargo --version
 
 ## Installation
 
+### Download Binary (Recommended)
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/XRPL-Commons/Bedrock/main/install.sh | sh
+```
+
+This auto-detects your OS and architecture, downloads the latest release binary, and installs it to `/usr/local/bin/`.
+
 ### Install from Source
 
 ```bash
