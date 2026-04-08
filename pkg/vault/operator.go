@@ -72,6 +72,9 @@ func (o *Operator) Deposit(ctx context.Context, cfg DepositConfig) (*DepositResu
 		"verbose":     o.verbose,
 	}
 
+	if cfg.ComputationAllowance != "" {
+		jsConfig["computation_allowance"] = cfg.ComputationAllowance
+	}
 	if cfg.Fee != "" {
 		jsConfig["fee"] = cfg.Fee
 	}
@@ -102,6 +105,9 @@ func (o *Operator) Withdraw(ctx context.Context, cfg WithdrawConfig) (*WithdrawR
 		"verbose":     o.verbose,
 	}
 
+	if cfg.ComputationAllowance != "" {
+		jsConfig["computation_allowance"] = cfg.ComputationAllowance
+	}
 	if cfg.Fee != "" {
 		jsConfig["fee"] = cfg.Fee
 	}

@@ -21,6 +21,7 @@ var (
 	escrowFinishAfter int64
 	escrowWallet      string
 	escrowNetwork     string
+	escrowGas         string
 	escrowFee         string
 	escrowSkipBuild   bool
 )
@@ -92,6 +93,7 @@ func init() {
 	// Finish flags
 	escrowFinishCmd.Flags().StringVar(&escrowWallet, "wallet", "", "Wallet seed or name (required)")
 	escrowFinishCmd.Flags().StringVar(&escrowNetwork, "network", "local", "Network")
+	escrowFinishCmd.Flags().StringVarP(&escrowGas, "gas", "g", "1000000", "Computation allowance")
 	escrowFinishCmd.Flags().StringVar(&escrowFee, "fee", "", "Transaction fee in drops")
 	_ = escrowFinishCmd.MarkFlagRequired("wallet")
 
@@ -217,12 +219,13 @@ func runEscrowFinish(cmd *cobra.Command, args []string) error {
 	}
 
 	result, err := op.Finish(cmd.Context(), escrow.FinishConfig{
-		Owner:          owner,
-		EscrowSequence: seq,
-		NetworkURL:     netCfg.URL,
-		NetworkID:      netCfg.NetworkID,
-		WalletSeed:     walletSeed,
-		Fee:            escrowFee,
+		Owner:                owner,
+		EscrowSequence:       seq,
+		NetworkURL:           netCfg.URL,
+		NetworkID:            netCfg.NetworkID,
+		WalletSeed:           walletSeed,
+		ComputationAllowance: escrowGas,
+		Fee:                  escrowFee,
 	})
 	if err != nil {
 		color.Red("\n✗ Escrow finish failed: %v\n", err)

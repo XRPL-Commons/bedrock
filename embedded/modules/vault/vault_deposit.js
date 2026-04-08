@@ -14,6 +14,7 @@
  *   "network_url": "wss://alphanet.xrpl.org",
  *   "network_id": 21465,
  *   "wallet_seed": "sXXX...",
+ *   "computation_allowance": "1000000" (optional, default 1000000),
  *   "fee": "1000000" (optional, default 1 XRP),
  *   "verbose": true (optional),
  *   "algorithm": "secp256k1" (optional)
@@ -112,6 +113,7 @@ async function vaultDeposit(config) {
       Account: wallet.address,
       VaultID: config.vault_id,
       Amount: config.amount,
+      ComputationAllowance: parseInt(config.computation_allowance || '1000000'),
       Fee: config.fee || '1000000',
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
