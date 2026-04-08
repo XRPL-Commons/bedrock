@@ -15,6 +15,7 @@
  *   "network_url": "wss://alphanet.xrpl.org",
  *   "network_id": 21465,
  *   "wallet_seed": "sXXX...",
+ *   "computation_allowance": "1000000" (optional, default 1000000),
  *   "fee": "1000000" (optional, default 1 XRP),
  *   "verbose": true (optional),
  *   "algorithm": "secp256k1" (optional)

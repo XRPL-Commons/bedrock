@@ -76,6 +76,9 @@ func (o *Operator) Finish(ctx context.Context, cfg FinishConfig) (*FinishResult,
 		"verbose":         o.verbose,
 	}
 
+	if cfg.ComputationAllowance != "" {
+		jsConfig["computation_allowance"] = cfg.ComputationAllowance
+	}
 	if cfg.Fee != "" {
 		jsConfig["fee"] = cfg.Fee
 	}

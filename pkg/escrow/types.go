@@ -26,13 +26,14 @@ type DeployResult struct {
 
 // FinishConfig configures an escrow finish operation
 type FinishConfig struct {
-	Owner          string
-	EscrowSequence int
-	NetworkURL     string
-	NetworkID      uint32
-	WalletSeed     string
-	Fee            string
-	Algorithm      string
+	Owner                string
+	EscrowSequence       int
+	NetworkURL           string
+	NetworkID            uint32
+	WalletSeed           string
+	ComputationAllowance string
+	Fee                  string
+	Algorithm            string
 }
 
 // FinishResult contains finish results

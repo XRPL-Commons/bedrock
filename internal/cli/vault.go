@@ -20,6 +20,7 @@ var (
 	vaultDestination   string
 	vaultWallet        string
 	vaultNetwork       string
+	vaultGas           string
 	vaultFee           string
 	vaultSkipBuild     bool
 )
@@ -85,6 +86,7 @@ func init() {
 	vaultDepositCmd.Flags().StringVar(&vaultAmount, "amount", "", "Amount in drops (required)")
 	vaultDepositCmd.Flags().StringVar(&vaultWallet, "wallet", "", "Wallet seed or name (required)")
 	vaultDepositCmd.Flags().StringVar(&vaultNetwork, "network", "local", "Network")
+	vaultDepositCmd.Flags().StringVarP(&vaultGas, "gas", "g", "1000000", "Computation allowance")
 	vaultDepositCmd.Flags().StringVar(&vaultFee, "fee", "", "Transaction fee in drops")
 	_ = vaultDepositCmd.MarkFlagRequired("amount")
 	_ = vaultDepositCmd.MarkFlagRequired("wallet")
@@ -94,6 +96,7 @@ func init() {
 	vaultWithdrawCmd.Flags().StringVar(&vaultDestination, "destination", "", "Withdrawal destination (required)")
 	vaultWithdrawCmd.Flags().StringVar(&vaultWallet, "wallet", "", "Wallet seed or name (required)")
 	vaultWithdrawCmd.Flags().StringVar(&vaultNetwork, "network", "local", "Network")
+	vaultWithdrawCmd.Flags().StringVarP(&vaultGas, "gas", "g", "1000000", "Computation allowance")
 	vaultWithdrawCmd.Flags().StringVar(&vaultFee, "fee", "", "Transaction fee in drops")
 	_ = vaultWithdrawCmd.MarkFlagRequired("amount")
 	_ = vaultWithdrawCmd.MarkFlagRequired("destination")
@@ -215,12 +218,13 @@ func runVaultDeposit(cmd *cobra.Command, args []string) error {
 	}
 
 	result, err := op.Deposit(cmd.Context(), vault.DepositConfig{
-		VaultID:    vaultID,
-		Amount:     vaultAmount,
-		NetworkURL: netCfg.URL,
-		NetworkID:  netCfg.NetworkID,
-		WalletSeed: walletSeed,
-		Fee:        vaultFee,
+		VaultID:              vaultID,
+		Amount:               vaultAmount,
+		NetworkURL:           netCfg.URL,
+		NetworkID:            netCfg.NetworkID,
+		WalletSeed:           walletSeed,
+		ComputationAllowance: vaultGas,
+		Fee:                  vaultFee,
 	})
 	if err != nil {
 		color.Red("\n✗ Vault deposit failed: %v\n", err)
@@ -260,13 +264,14 @@ func runVaultWithdraw(cmd *cobra.Command, args []string) error {
 	}
 
 	result, err := op.Withdraw(cmd.Context(), vault.WithdrawConfig{
-		VaultID:     vaultID,
-		Amount:      vaultAmount,
-		Destination: vaultDestination,
-		NetworkURL:  netCfg.URL,
-		NetworkID:   netCfg.NetworkID,
-		WalletSeed:  walletSeed,
-		Fee:         vaultFee,
+		VaultID:              vaultID,
+		Amount:               vaultAmount,
+		Destination:          vaultDestination,
+		NetworkURL:           netCfg.URL,
+		NetworkID:            netCfg.NetworkID,
+		WalletSeed:           walletSeed,
+		ComputationAllowance: vaultGas,
+		Fee:                  vaultFee,
 	})
 	if err != nil {
 		color.Red("\n✗ Vault withdraw failed: %v\n", err)

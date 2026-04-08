@@ -24,13 +24,14 @@ type DeployResult struct {
 
 // DepositConfig configures a vault deposit
 type DepositConfig struct {
-	VaultID    string
-	Amount     string // in drops for XRP
-	NetworkURL string
-	NetworkID  uint32
-	WalletSeed string
-	Fee        string
-	Algorithm  string
+	VaultID              string
+	Amount               string // in drops for XRP
+	NetworkURL           string
+	NetworkID            uint32
+	WalletSeed           string
+	ComputationAllowance string
+	Fee                  string
+	Algorithm            string
 }
 
 // DepositResult contains deposit results
@@ -41,14 +42,15 @@ type DepositResult struct {
 
 // WithdrawConfig configures a vault withdrawal
 type WithdrawConfig struct {
-	VaultID     string
-	Amount      string
-	Destination string
-	NetworkURL  string
-	NetworkID   uint32
-	WalletSeed  string
-	Fee         string
-	Algorithm   string
+	VaultID              string
+	Amount               string
+	Destination          string
+	NetworkURL           string
+	NetworkID            uint32
+	WalletSeed           string
+	ComputationAllowance string
+	Fee                  string
+	Algorithm            string
 }
 
 // WithdrawResult contains withdrawal results
