@@ -86,6 +86,7 @@ async function finishEscrow(config) {
     network_url,
     network_id,
     wallet_seed,
+    computation_allowance,
     fee,
     verbose,
   } = config;
@@ -123,6 +124,7 @@ async function finishEscrow(config) {
       Account: wallet.address,
       Owner: owner,
       OfferSequence: escrow_sequence,
+      ComputationAllowance: parseInt(computation_allowance || '1000000'),
       Fee: fee || '1000000',
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
