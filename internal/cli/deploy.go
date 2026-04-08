@@ -84,7 +84,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		if deployNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
-				NetworkID: 63456,
+				NetworkID: 100,
 				FaucetURL: "http://localhost:8080/faucet",
 			}
 		} else {

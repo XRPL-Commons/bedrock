@@ -110,7 +110,7 @@ func (r *IntegrationRunner) runSuite(ctx context.Context, suite *IntegrationTest
 		if networkName == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
-				NetworkID: 63456,
+				NetworkID: 100,
 			}
 		} else {
 			return nil, fmt.Errorf("network '%s' not found in config", networkName)

@@ -57,7 +57,7 @@ func (f *Fuzzer) Run(ctx context.Context, contractAccount string, walletSeed str
 		if networkName == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
-				NetworkID: 63456,
+				NetworkID: 100,
 			}
 		} else {
 			return nil, fmt.Errorf("network '%s' not found", networkName)

@@ -273,7 +273,7 @@ ledger_interval = 1000
 
 [networks.local]
 url = "ws://localhost:6006"
-network_id = 63456
+network_id = 100
 faucet_url = "http://localhost:8080/faucet"
 
 [networks.alphanet]

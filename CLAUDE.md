@@ -4,30 +4,70 @@ This file provides instructions for AI assistants working with the Bedrock XRPL 
 
 ## What is Bedrock?
 
-Bedrock is a CLI tool for developing, deploying, and interacting with XRPL smart contracts written in Rust. It compiles contracts to WebAssembly and handles deployment to XRPL networks.
+Bedrock is a CLI tool for developing, deploying, and interacting with XRPL smart contracts, smart escrows, and smart vaults written in Rust. It compiles code to WebAssembly and handles deployment to XRPL networks. Bedrock supports three primitives:
+
+- **Smart Contract** — Custom Rust WASM logic deployed via `ContractCreate`/`ContractCall`
+- **Smart Escrow** — Conditional payments with WASM conditions via `EscrowCreate`/`EscrowFinish`
+- **Smart Vault** — Asset custody with WASM deposit/withdraw logic via `VaultCreate`/`VaultDeposit`/`VaultWithdraw`
 
 ## Command Reference
 
 ### Project Initialization
 
 ```bash
-# Create a new project
+# Create a new project (interactive primitive selection)
 bedrock init <project-name>
+
+# Create a project with specific primitives
+bedrock init <project-name> --primitives contract
+bedrock init <project-name> --primitives escrow
+bedrock init <project-name> --primitives vault
+
+# Multiple primitives in one project
+bedrock init <project-name> --primitives contract,escrow,vault
+
+# With a specific template
+bedrock init <project-name> --primitives vault --template vault-whitelist
 ```
 
-Creates a project structure with `bedrock.toml`, `contract/` directory, and boilerplate Rust code.
+In interactive mode, `bedrock init` presents a menu to select a primitive. In non-interactive mode, it defaults to `contract`.
 
-### Building Contracts
+### Adding Primitives to an Existing Project
 
 ```bash
-# Build in release mode (optimized, smaller WASM)
+# Add a primitive to an existing project
+bedrock add contract
+bedrock add escrow
+bedrock add vault
+
+# With a specific template
+bedrock add vault --template vault-whitelist
+```
+
+### Building
+
+```bash
+# Build all primitives in the project
 bedrock build
+
+# Build a specific primitive
+bedrock build --type contract
+bedrock build --type escrow
+bedrock build --type vault
 
 # Build in debug mode (faster compilation)
 bedrock build --release=false
 ```
 
-### Deploying Contracts
+**Build targets per primitive:**
+
+| Primitive | WASM Target | Rust Edition |
+|-----------|-------------|--------------|
+| Contract  | `wasm32-unknown-unknown` | 2021 |
+| Escrow    | `wasm32v1-none` | 2024 |
+| Vault     | `wasm32v1-none` | 2024 |
+
+### Deploying Smart Contracts
 
 ```bash
 # Deploy to alphanet (default)
@@ -77,6 +117,71 @@ bedrock call <contract-address> <function-name> \
 - Function names are hex-encoded automatically
 - `--wallet` is required
 
+### Smart Vault Commands
+
+```bash
+# Deploy a smart vault
+bedrock vault deploy --asset XRP --wallet <seed> --network local
+bedrock vault deploy --asset USD --issuer <address> --wallet <seed> --network alphanet
+bedrock vault deploy --asset XRP --max-capacity 1000000 --wallet <seed>
+bedrock vault deploy --skip-build --wallet <seed>
+
+# Deposit into a vault
+bedrock vault deposit <vault-id> --amount <drops> --wallet <seed> --network local
+
+# Withdraw from a vault
+bedrock vault withdraw <vault-id> --amount <drops> --destination <address> --wallet <seed> --network local
+
+# Check vault status
+bedrock vault status <vault-id> --network local
+```
+
+**Vault deploy flags:**
+- `--asset` — Asset currency code (default: `XRP`)
+- `--issuer` — Asset issuer (required for non-XRP assets)
+- `--max-capacity` — Maximum vault capacity
+- `--wallet` — Wallet seed or jade keystore name (required)
+- `--network` — Network: `local` (default) or `alphanet`
+- `--fee` — Transaction fee in drops
+- `--skip-build` — Skip building WASM
+
+**Smart vault WASM functions:**
+- `on_deposit()` — Returns 1 to allow deposit, 0 to deny
+- `on_withdraw()` — Returns 1 to allow withdrawal, 0 to deny
+
+### Smart Escrow Commands
+
+```bash
+# Deploy a smart escrow
+bedrock escrow deploy --destination <address> --amount <drops> --wallet <seed> --network local
+bedrock escrow deploy --destination <address> --amount <drops> \
+  --cancel-after <ripple-epoch> --finish-after <ripple-epoch> \
+  --wallet <seed> --network alphanet
+bedrock escrow deploy --skip-build --destination <address> --amount <drops> --wallet <seed>
+
+# Finish (release) an escrow
+bedrock escrow finish <owner> <sequence> --wallet <seed> --network local
+
+# Cancel an escrow
+bedrock escrow cancel <owner> <sequence> --wallet <seed> --network local
+
+# Check escrow status
+bedrock escrow status <owner> <sequence> --network local
+```
+
+**Escrow deploy flags:**
+- `--destination` — Escrow beneficiary address (required)
+- `--amount` — Amount in drops (required)
+- `--cancel-after` — Cancel after time (ripple epoch timestamp)
+- `--finish-after` — Finish after time (ripple epoch timestamp)
+- `--wallet` — Wallet seed or jade keystore name
+- `--network` — Network: `local` (default) or `alphanet`
+- `--fee` — Transaction fee in drops
+- `--skip-build` — Skip building WASM
+
+**Smart escrow WASM function:**
+- `finish()` — Returns 1 to release the escrow, 0 to keep locked
+
 ### Local Node Management
 
 ```bash
@@ -92,6 +197,12 @@ bedrock node status
 # View logs
 bedrock node logs
 ```
+
+The node auto-detects the project type and configures accordingly:
+- **Contract projects:** Uses `transia/cluster` image with genesis file
+- **Escrow/Vault projects:** Uses `willemolding/rippled:smart-vaults.0` in standalone mode with SmartEscrow/SmartVault features
+
+A ledger advancement daemon runs in the background (PID in `.bedrock/ledger-daemon.pid`).
 
 **Local node endpoints:**
 - WebSocket: `ws://localhost:6006`
@@ -117,7 +228,7 @@ bedrock jade export <name>
 bedrock jade remove <name>
 ```
 
-Wallets are encrypted and stored in `~/.config/bedrock/wallets/`.
+Wallets are encrypted and stored in `~/.config/bedrock/wallets/`. Wallet names can be used in place of seeds in `--wallet` flags across all commands.
 
 ### Other Commands
 
@@ -167,7 +278,41 @@ fn my_function() -> i32 {
 }
 ```
 
-### ABI Annotation Syntax
+### Smart Escrow Structure
+
+```rust
+#![no_std]
+
+use xrpl_wasm_stdlib::finish;
+
+#[no_mangle]
+pub extern "C" fn finish() -> i32 {
+    // Return 1 to release the escrow, 0 to keep locked
+    1
+}
+```
+
+### Smart Vault Structure
+
+```rust
+#![no_std]
+
+use xrpl_wasm_stdlib::{on_deposit, on_withdraw};
+
+#[no_mangle]
+pub extern "C" fn on_deposit() -> i32 {
+    // Return 1 to allow deposit, 0 to deny
+    1
+}
+
+#[no_mangle]
+pub extern "C" fn on_withdraw() -> i32 {
+    // Return 1 to allow withdrawal, 0 to deny
+    1
+}
+```
+
+### ABI Annotation Syntax (Contracts only)
 
 ```rust
 /// @xrpl-function <function_name>
@@ -176,7 +321,7 @@ fn my_function() -> i32 {
 /// @flag 0  (required) or @flag 1 (optional)
 ```
 
-### Supported Types
+### Supported Types (Contracts)
 
 | Type | Description |
 |------|-------------|
@@ -187,76 +332,159 @@ fn my_function() -> i32 {
 | `CURRENCY` | Currency code |
 | `ISSUE` | Currency + issuer pair |
 
-## Typical Development Workflow
+### Available Templates
 
-1. **Initialize project:**
-   ```bash
-   bedrock init my-contract
-   cd my-contract
-   ```
+**Contract templates:** `basic` (default), `token`, `nft`, `contract-escrow`, `counter`
 
-2. **Start local node (optional):**
-   ```bash
-   bedrock node start
-   ```
+**Escrow templates:** `escrow-hello` (default), `escrow-oracle`
 
-3. **Write contract** in `contract/src/lib.rs`
+**Vault templates:** `vault-hello` (default), `vault-whitelist`
 
-4. **Build:**
-   ```bash
-   bedrock build
-   ```
+## Typical Development Workflows
 
-5. **Deploy:**
-   ```bash
-   bedrock deploy --network local
-   # Note the contract address and wallet seed from output
-   ```
+### Smart Contract Workflow
 
-6. **Interact:**
-   ```bash
-   bedrock call <contract> <function> --wallet <seed> --network local
-   ```
+1. `bedrock init my-contract --primitives contract && cd my-contract`
+2. `bedrock node start`
+3. Write contract in `contract/src/lib.rs`
+4. `bedrock build`
+5. `bedrock deploy --network local` — note the contract address and wallet seed
+6. `bedrock call <contract> <function> --wallet <seed> --network local`
+7. `bedrock deploy --network alphanet`
 
-7. **Deploy to testnet:**
-   ```bash
-   bedrock deploy --network alphanet
-   ```
+### Smart Escrow Workflow
+
+1. `bedrock init my-escrow --primitives escrow && cd my-escrow`
+2. `bedrock node start`
+3. Write escrow logic in `escrow/src/lib.rs`
+4. `bedrock build`
+5. `bedrock escrow deploy --destination <addr> --amount 1000000 --wallet <seed> --network local`
+6. `bedrock escrow status <owner> <sequence> --network local`
+7. `bedrock escrow finish <owner> <sequence> --wallet <seed> --network local`
+
+### Smart Vault Workflow
+
+1. `bedrock init my-vault --primitives vault && cd my-vault`
+2. `bedrock node start`
+3. Write vault logic in `vault/src/lib.rs`
+4. `bedrock build`
+5. `bedrock vault deploy --asset XRP --wallet <seed> --network local`
+6. `bedrock vault deposit <vault-id> --amount 1000000 --wallet <seed> --network local`
+7. `bedrock vault withdraw <vault-id> --amount 500000 --destination <addr> --wallet <seed> --network local`
+8. `bedrock vault status <vault-id> --network local`
 
 ## Configuration File (bedrock.toml)
+
+### Contract Project
 
 ```toml
 [project]
 name = "my-contract"
 version = "0.1.0"
 authors = ["Your Name"]
+primitives = ["contract"]
 
 [build]
 source = "contract/src/lib.rs"
 output = "contract/target/wasm32-unknown-unknown/release"
 target = "wasm32-unknown-unknown"
 
+[contracts.main]
+source = "contract/src/lib.rs"
+abi = "contract/build/abi.json"
+
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "transia/alphanet:latest"
+docker_image = "transia/cluster:latest"
 ledger_interval = 1000
 
 [networks.local]
 url = "ws://localhost:6006"
-network_id = 63456
+network_id = 100
 faucet_url = "http://localhost:8080/faucet"
 
 [networks.alphanet]
 url = "wss://alphanet.nerdnest.xyz"
 network_id = 21465
 faucet_url = "https://alphanet.faucet.nerdnest.xyz/accounts"
+
+[wallets]
+keystore = ".wallets/keystore.json"
+```
+
+### Escrow Project
+
+```toml
+[project]
+name = "my-escrow"
+version = "0.1.0"
+authors = ["Your Name"]
+primitives = ["escrow"]
+
+[escrows.main]
+source = "escrow/src/lib.rs"
+output = "escrow/target/wasm32v1-none/release"
+
+[local_node]
+config_dir = ".bedrock/node-config"
+docker_image = "willemolding/rippled:smart-vaults.0"
+ledger_interval = 1000
+
+[networks.local]
+url = "ws://localhost:6006"
+network_id = 100
+faucet_url = "http://localhost:8080/faucet"
+
+[networks.alphanet]
+url = "wss://alphanet.nerdnest.xyz"
+network_id = 21465
+faucet_url = "https://alphanet.faucet.nerdnest.xyz/accounts"
+
+[wallets]
+keystore = ".wallets/keystore.json"
+```
+
+### Vault Project
+
+```toml
+[project]
+name = "my-vault"
+version = "0.1.0"
+authors = ["Your Name"]
+primitives = ["vault"]
+
+[vaults.main]
+source = "vault/src/lib.rs"
+output = "vault/target/wasm32v1-none/release"
+
+[local_node]
+config_dir = ".bedrock/node-config"
+docker_image = "willemolding/rippled:smart-vaults.0"
+ledger_interval = 1000
+
+[networks.local]
+url = "ws://localhost:6006"
+network_id = 100
+faucet_url = "http://localhost:8080/faucet"
+
+[networks.alphanet]
+url = "wss://alphanet.nerdnest.xyz"
+network_id = 21465
+faucet_url = "https://alphanet.faucet.nerdnest.xyz/accounts"
+
+[wallets]
+keystore = ".wallets/keystore.json"
 ```
 
 ## Common Issues and Solutions
 
 ### Build fails with wasm32 target error
 ```bash
+# For contracts
 rustup target add wasm32-unknown-unknown
+
+# For escrow/vault
+rustup target add wasm32v1-none
 ```
 
 ### Node won't start
@@ -269,20 +497,59 @@ Check Node.js version (18+ required): `node --version`
 - Ensure wallet has sufficient XRP (100+ XRP for deployment)
 - Check network connectivity to alphanet
 
-## Project File Structure
+## Project File Structures
+
+### Contract Project
 
 ```
 my-contract/
-├── bedrock.toml          # Project configuration
+├── bedrock.toml
+├── .wallets/
+├── .bedrock/
+│   └── node-config/
+│       ├── genesis.json
+│       ├── xrpld.cfg
+│       └── validators.txt
 ├── contract/
-│   ├── Cargo.toml        # Rust dependencies
+│   ├── Cargo.toml
 │   └── src/
-│       └── lib.rs        # Smart contract code
+│       └── lib.rs
 ├── abi.json              # Generated ABI (after deploy)
-└── target/               # Build output
-    └── wasm32-unknown-unknown/
-        └── release/
-            └── contract.wasm
+└── README.md
+```
+
+### Escrow Project
+
+```
+my-escrow/
+├── bedrock.toml
+├── .wallets/
+├── .bedrock/
+│   └── node-config/
+│       ├── xrpld.cfg
+│       └── validators.txt
+├── escrow/
+│   ├── Cargo.toml
+│   └── src/
+│       └── lib.rs
+└── README.md
+```
+
+### Vault Project
+
+```
+my-vault/
+├── bedrock.toml
+├── .wallets/
+├── .bedrock/
+│   └── node-config/
+│       ├── xrpld.cfg
+│       └── validators.txt
+├── vault/
+│   ├── Cargo.toml
+│   └── src/
+│       └── lib.rs
+└── README.md
 ```
 
 ## Best Practices
@@ -290,5 +557,6 @@ my-contract/
 1. Always use release mode for production deployments
 2. Test on local node before deploying to alphanet
 3. Keep wallet seeds secure - use `bedrock jade` for encrypted storage
-4. Include descriptive ABI annotations for all exported functions
-5. Optimize contracts with `opt-level = "z"` and `lto = true` in Cargo.toml
+4. Include descriptive ABI annotations for all exported contract functions
+5. Optimize with `opt-level = "z"` and `lto = true` in Cargo.toml
+6. Use `bedrock add` to combine multiple primitives in a single project

@@ -74,7 +74,7 @@ func runModify(cmd *cobra.Command, args []string) error {
 	networkCfg, ok := cfg.Networks[modifyNetwork]
 	if !ok {
 		if modifyNetwork == "local" {
-			networkCfg = config.NetworkConfig{URL: "ws://localhost:6006", NetworkID: 63456}
+			networkCfg = config.NetworkConfig{URL: "ws://localhost:6006", NetworkID: 100}
 		} else {
 			return fmt.Errorf("network '%s' not found in config", modifyNetwork)
 		}
