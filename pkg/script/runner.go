@@ -278,7 +278,7 @@ func (r *Runner) resolveNetwork(name string) config.NetworkConfig {
 	if name == "local" {
 		return config.NetworkConfig{
 			URL:       "ws://localhost:6006",
-			NetworkID: 63456,
+			NetworkID: 100,
 		}
 	}
 	return config.NetworkConfig{}
