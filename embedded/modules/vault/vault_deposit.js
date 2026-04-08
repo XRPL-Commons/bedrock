@@ -112,6 +112,7 @@ async function vaultDeposit(config) {
       Account: wallet.address,
       VaultID: config.vault_id,
       Amount: config.amount,
+      ComputationAllowance: parseInt(config.computation_allowance || '1000000'),
       Fee: config.fee || '1000000',
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,

@@ -114,6 +114,7 @@ async function vaultWithdraw(config) {
       VaultID: config.vault_id,
       Amount: config.amount,
       Destination: config.destination,
+      ComputationAllowance: parseInt(config.computation_allowance || '1000000'),
       Fee: config.fee || '1000000',
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
