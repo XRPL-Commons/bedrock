@@ -284,7 +284,7 @@ output = "escrow/target/wasm32v1-none/release"
 
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "lejamon/rippled-smart-contracts-vault:arm64"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 
 [networks.local]
@@ -331,7 +331,7 @@ panic = "abort"
 | Crate | `xrpl_wasm_std` + `xrpl_wasm_macros` | `xrpl_wasm_stdlib` |
 | ABI | Required | Not needed |
 | Entry point | `@xrpl-function` annotated functions | `finish()` |
-| Docker image | `lejamon/rippled-smart-contracts-vault:arm64` | `lejamon/rippled-smart-contracts-vault:arm64` |
+| Docker image | `lejamon/rippled_smart_contract_vault_x86` | `lejamon/rippled_smart_contract_vault_x86` |
 | Node config | genesis.json + xrpld.cfg | xrpld.cfg (standalone) |
 
 ## Development Workflow

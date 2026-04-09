@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const xrpl = require('xrpl');
+const xrpl = require('@xrpl-commons/xrpl');
 
 async function testConnection() {
   console.log('Testing connection to ws://localhost:6006...\n');

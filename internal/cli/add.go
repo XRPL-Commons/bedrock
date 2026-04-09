@@ -139,7 +139,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	if err := os.WriteFile(xrpldPath, []byte(xrpldCfgTemplate), 0644); err != nil {
 		color.Yellow("Warning: failed to update xrpld.cfg: %v\n", err)
 	}
-	cfg.LocalNode.DockerImage = def.DockerImage
+	cfg.LocalNode.DockerImage = config.DefaultLocalNodeConfig().DockerImage
 
 	if err := config.Save(cfg, "bedrock.toml"); err != nil {
 		return fmt.Errorf("failed to update bedrock.toml: %w", err)

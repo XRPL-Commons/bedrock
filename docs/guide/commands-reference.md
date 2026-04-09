@@ -303,7 +303,7 @@ bedrock node <command>
 | `status` | Check if the node is running |
 | `logs` | View node container logs |
 
-The node uses the `lejamon/rippled-smart-contracts-vault:arm64` Docker image for all project types.
+The node uses the `lejamon/rippled_smart_contract_vault_x86` Docker image for all project types.
 
 **Requirements:** Docker must be installed and running.
 

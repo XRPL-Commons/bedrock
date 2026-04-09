@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "xrpl": "file:/Users/thomashussenet/Documents/commons/xrpljs/xrpl.js/packages/xrpl"
+    "@xrpl-commons/xrpl": "^4.6.0"
   }
 }

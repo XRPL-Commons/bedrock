@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
+	"github.com/xrpl-commons/bedrock/pkg/config"
 	"github.com/xrpl-commons/bedrock/pkg/primitives"
 	"github.com/xrpl-commons/bedrock/pkg/templates"
 )
@@ -237,8 +238,8 @@ target = "wasm32-unknown-unknown"
 		}
 	}
 
-	// All primitives use the same unified image
-	dockerImage := primitives.Registry[primitives.Contract].DockerImage
+	// Use arch-aware default image (x86 for amd64, arm64 for Apple Silicon)
+	dockerImage := config.DefaultLocalNodeConfig().DockerImage
 
 	buf.WriteString(fmt.Sprintf(`[local_node]
 config_dir = ".bedrock/node-config"

@@ -8,7 +8,7 @@
  * Usage: node delete.js <config-json-path>
  */
 
-const xrpl = require('xrpl');
+const xrpl = require('@xrpl-commons/xrpl');
 const fs = require('fs');
 
 async function deleteContract(config) {

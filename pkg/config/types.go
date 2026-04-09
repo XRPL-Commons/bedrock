@@ -1,7 +1,6 @@
 package config
 
 import (
-	"runtime"
 	"time"
 )
 
@@ -110,23 +109,15 @@ type DocConfig struct {
 }
 
 const (
-	// DefaultDockerImageAMD64 is the unified rippled image supporting contracts, escrows, and vaults
-	DefaultDockerImageAMD64 = "lejamon/rippled-smart-contracts-vault:arm64"
-	// DefaultDockerImageARM64 is the unified rippled image (native arm64)
-	DefaultDockerImageARM64 = "lejamon/rippled-smart-contracts-vault:arm64"
+	// DefaultDockerImage is the unified rippled image supporting contracts, escrows, and vaults
+	DefaultDockerImage = "lejamon/rippled_smart_contract_vault_x86"
 )
 
 // DefaultLocalNodeConfig returns default local node configuration.
-// On arm64 (Apple Silicon), it defaults to the native arm64 image to avoid
-// WASM execution hangs under Rosetta/QEMU emulation.
 func DefaultLocalNodeConfig() LocalNodeConfig {
-	image := DefaultDockerImageAMD64
-	if runtime.GOARCH == "arm64" {
-		image = DefaultDockerImageARM64
-	}
 	return LocalNodeConfig{
 		ConfigDir:      ".bedrock/node-config",
-		DockerImage:    image,
+		DockerImage:    DefaultDockerImage,
 		LedgerInterval: 1000, // 1 second default
 	}
 }

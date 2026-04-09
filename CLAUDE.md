@@ -393,7 +393,7 @@ abi = "contract/build/abi.json"
 
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "lejamon/rippled-smart-contracts-vault:arm64"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 
 [networks.local]
@@ -425,7 +425,7 @@ output = "escrow/target/wasm32v1-none/release"
 
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "lejamon/rippled-smart-contracts-vault:arm64"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 
 [networks.local]
@@ -457,7 +457,7 @@ output = "vault/target/wasm32v1-none/release"
 
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "lejamon/rippled-smart-contracts-vault:arm64"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 
 [networks.local]

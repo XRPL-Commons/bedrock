@@ -6,7 +6,7 @@ Bedrock manages local XRPL nodes using Docker, providing a fast development envi
 
 Bedrock's local node functionality wraps Docker to run a local XRPL node (rippled). It auto-detects your project type and configures the node accordingly:
 
-- **All project types** — Uses the unified `lejamon/rippled-smart-contracts-vault:arm64` image
+- **All project types** — Uses the unified `lejamon/rippled_smart_contract_vault_x86` image
 
 All project types get:
 
@@ -64,7 +64,7 @@ Local XRPL Node Status
 ===================================
 Status:      Running
 Container:   a1b2c3d4e5f6
-Image:       lejamon/rippled-smart-contracts-vault:arm64
+Image:       lejamon/rippled_smart_contract_vault_x86
 Ports:
   - 6006->6006/tcp
   - 5005->5005/tcp
@@ -90,7 +90,7 @@ The local node reads its configuration from `bedrock.toml`:
 ```toml
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "lejamon/rippled-smart-contracts-vault:arm64"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 ```
 
@@ -102,7 +102,7 @@ ledger_interval = 1000
 
 ### Docker Image
 
-All project types use the same Docker image: `lejamon/rippled-smart-contracts-vault:arm64`
+All project types use the same Docker image: `lejamon/rippled_smart_contract_vault_x86`
 
 ### Node Configuration Files
 

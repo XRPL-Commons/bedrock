@@ -33,7 +33,7 @@
  * }
  */
 
-const xrpl = require('xrpl');
+const xrpl = require('@xrpl-commons/xrpl');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
