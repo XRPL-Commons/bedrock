@@ -33,7 +33,7 @@
  * }
  */
 
-const xrpl = require('@transia/xrpl');
+const xrpl = require('xrpl');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -346,8 +346,11 @@ async function deployContract(config) {
       Fee: fee || '100000000', // 100 XRP default
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
-      NetworkID: config.network_id,
     };
+
+    if (config.network_id && config.network_id > 1024) {
+      tx.NetworkID = config.network_id;
+    }
 
     // Use ContractHash (reuse existing code) or ContractCode (new WASM)
     if (reuse_code) {

@@ -6,8 +6,7 @@ Bedrock manages local XRPL nodes using Docker, providing a fast development envi
 
 Bedrock's local node functionality wraps Docker to run a local XRPL node (rippled). It auto-detects your project type and configures the node accordingly:
 
-- **Contract projects** — Uses `transia/cluster` image with genesis file and pre-funded accounts
-- **Escrow/Vault projects** — Uses `willemolding/rippled:smart-vaults.0` in standalone mode with SmartEscrow/SmartVault features enabled
+- **All project types** — Uses the unified `lejamon/rippled-smart-contracts-vault:arm64` image
 
 All project types get:
 
@@ -65,7 +64,7 @@ Local XRPL Node Status
 ===================================
 Status:      Running
 Container:   a1b2c3d4e5f6
-Image:       transia/alphanet:latest
+Image:       lejamon/rippled-smart-contracts-vault:arm64
 Ports:
   - 6006->6006/tcp
   - 5005->5005/tcp
@@ -91,7 +90,7 @@ The local node reads its configuration from `bedrock.toml`:
 ```toml
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "transia/cluster:latest"
+docker_image = "lejamon/rippled-smart-contracts-vault:arm64"
 ledger_interval = 1000
 ```
 
@@ -101,12 +100,9 @@ ledger_interval = 1000
 | `docker_image` | Docker image to use for the node | Depends on project type |
 | `ledger_interval` | Ledger advancement interval in ms | `1000` |
 
-### Docker Images per Project Type
+### Docker Image
 
-| Project Type | Docker Image |
-|---|---|
-| Contract | `transia/cluster:latest` |
-| Escrow / Vault | `willemolding/rippled:smart-vaults.0` |
+All project types use the same Docker image: `lejamon/rippled-smart-contracts-vault:arm64`
 
 ### Node Configuration Files
 
@@ -167,7 +163,7 @@ bedrock node start
 ### Connecting from Code
 
 ```javascript
-const { Client } = require('@transia/xrpl');
+const { Client } = require('xrpl');
 
 const client = new Client('ws://localhost:6006');
 await client.connect();

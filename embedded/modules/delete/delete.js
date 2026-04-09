@@ -8,7 +8,7 @@
  * Usage: node delete.js <config-json-path>
  */
 
-const xrpl = require('@transia/xrpl');
+const xrpl = require('xrpl');
 const fs = require('fs');
 
 async function deleteContract(config) {

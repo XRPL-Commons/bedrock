@@ -12,7 +12,7 @@ import (
 	"sync"
 )
 
-//go:embed modules/deploy/deploy.js modules/call/call.js modules/faucet/faucet.js modules/modify/modify.js modules/delete/delete.js modules/user_delete/user_delete.js modules/clawback/clawback.js modules/package.json modules/postinstall.js modules/escrow/escrow_deploy.js modules/escrow/escrow_finish.js modules/escrow/escrow_cancel.js modules/escrow/escrow_status.js modules/escrow/package.json modules/vault/vault_deploy.js modules/vault/vault_deposit.js modules/vault/vault_withdraw.js modules/vault/vault_status.js modules/vault/package.json
+//go:embed modules/deploy/deploy.js modules/call/call.js modules/faucet/faucet.js modules/modify/modify.js modules/delete/delete.js modules/user_delete/user_delete.js modules/clawback/clawback.js modules/package.json modules/escrow/escrow_deploy.js modules/escrow/escrow_finish.js modules/escrow/escrow_cancel.js modules/escrow/escrow_status.js modules/escrow/package.json modules/vault/vault_deploy.js modules/vault/vault_deposit.js modules/vault/vault_withdraw.js modules/vault/vault_status.js modules/vault/package.json
 var ModulesFS embed.FS
 
 var (
@@ -34,7 +34,6 @@ type moduleFile struct {
 // contractModules are the core contract modules (backward compat)
 var contractModules = []moduleFile{
 	{"modules/package.json", "package.json"},
-	{"modules/postinstall.js", "postinstall.js"},
 	{"modules/deploy/deploy.js", "deploy.js"},
 	{"modules/call/call.js", "call.js"},
 	{"modules/faucet/faucet.js", "faucet.js"},

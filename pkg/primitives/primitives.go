@@ -30,7 +30,7 @@ var Registry = map[string]PrimitiveDef{
 		WasmTarget:  "wasm32-unknown-unknown",
 		RustEdition: "2021",
 		SourceDir:   "contract",
-		DockerImage: "transia/cluster:f5d78179c9d1fbaf8bff8b77a052e263df90faa1",
+		DockerImage: "lejamon/rippled-smart-contracts-vault:arm64",
 	},
 	Escrow: {
 		Kind:        Escrow,
@@ -41,7 +41,7 @@ var Registry = map[string]PrimitiveDef{
 		WasmTarget:  "wasm32v1-none",
 		RustEdition: "2024",
 		SourceDir:   "escrow",
-		DockerImage: "willemolding/rippled:smart-vaults.0",
+		DockerImage: "lejamon/rippled-smart-contracts-vault:arm64",
 	},
 	Vault: {
 		Kind:        Vault,
@@ -52,7 +52,7 @@ var Registry = map[string]PrimitiveDef{
 		WasmTarget:  "wasm32v1-none",
 		RustEdition: "2024",
 		SourceDir:   "vault",
-		DockerImage: "willemolding/rippled:smart-vaults.0",
+		DockerImage: "lejamon/rippled-smart-contracts-vault:arm64",
 	},
 }
 

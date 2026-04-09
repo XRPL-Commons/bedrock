@@ -41,9 +41,6 @@ var genesisTemplate string
 //go:embed templates/xrpld.cfg
 var xrpldCfgTemplate string
 
-//go:embed templates/xrpld-vault.cfg
-var xrpldVaultCfgTemplate string
-
 //go:embed templates/validators.txt
 var validatorsTemplate string
 
@@ -240,14 +237,8 @@ target = "wasm32-unknown-unknown"
 		}
 	}
 
-	// Determine docker image from first non-contract primitive, or contract default
+	// All primitives use the same unified image
 	dockerImage := primitives.Registry[primitives.Contract].DockerImage
-	for _, p := range selected {
-		if p != primitives.Contract {
-			dockerImage = primitives.Registry[p].DockerImage
-			break
-		}
-	}
 
 	buf.WriteString(fmt.Sprintf(`[local_node]
 config_dir = ".bedrock/node-config"
@@ -302,38 +293,27 @@ keystore = ".wallets/keystore.json"
 }
 
 func writeNodeConfig(projectName string, selected []string) error {
-	isEscrowOrVault := false
+	// Write unified xrpld.cfg (supports all features: contracts, escrows, vaults)
+	configs := map[string]string{
+		"xrpld.cfg": xrpldCfgTemplate,
+	}
+
+	// Contract projects also need genesis.json for ledger initialization
+	hasContract := false
 	for _, p := range selected {
-		if p == primitives.Escrow || p == primitives.Vault {
-			isEscrowOrVault = true
+		if p == primitives.Contract {
+			hasContract = true
 			break
 		}
 	}
+	if hasContract {
+		configs["genesis.json"] = genesisTemplate
+	}
 
-	if isEscrowOrVault {
-		// Escrow/vault: only write rippled.cfg with required features, no genesis.json
-		configs := map[string]string{
-			"xrpld.cfg":      xrpldVaultCfgTemplate,
-			"validators.txt": validatorsTemplate,
-		}
-		for name, content := range configs {
-			path := filepath.Join(projectName, ".bedrock", "node-config", name)
-			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-				return fmt.Errorf("failed to create %s: %w", name, err)
-			}
-		}
-	} else {
-		// Contract: write all config files including genesis.json
-		configs := map[string]string{
-			"genesis.json":   genesisTemplate,
-			"xrpld.cfg":      xrpldCfgTemplate,
-			"validators.txt": validatorsTemplate,
-		}
-		for name, content := range configs {
-			path := filepath.Join(projectName, ".bedrock", "node-config", name)
-			if err := os.WriteFile(path, []byte(content), 0644); err != nil {
-				return fmt.Errorf("failed to create %s: %w", name, err)
-			}
+	for name, content := range configs {
+		path := filepath.Join(projectName, ".bedrock", "node-config", name)
+		if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+			return fmt.Errorf("failed to create %s: %w", name, err)
 		}
 	}
 

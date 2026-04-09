@@ -134,15 +134,12 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Update rippled.cfg and docker image for escrow/vault (needs SmartEscrow/SmartVault features)
-	if p == primitives.Escrow || p == primitives.Vault {
-		xrpldPath := filepath.Join(".bedrock", "node-config", "xrpld.cfg")
-		if err := os.WriteFile(xrpldPath, []byte(xrpldVaultCfgTemplate), 0644); err != nil {
-			color.Yellow("Warning: failed to update xrpld.cfg: %v\n", err)
-		}
-
-		cfg.LocalNode.DockerImage = def.DockerImage
+	// Update xrpld.cfg to unified config with all features
+	xrpldPath := filepath.Join(".bedrock", "node-config", "xrpld.cfg")
+	if err := os.WriteFile(xrpldPath, []byte(xrpldCfgTemplate), 0644); err != nil {
+		color.Yellow("Warning: failed to update xrpld.cfg: %v\n", err)
 	}
+	cfg.LocalNode.DockerImage = def.DockerImage
 
 	if err := config.Save(cfg, "bedrock.toml"); err != nil {
 		return fmt.Errorf("failed to update bedrock.toml: %w", err)

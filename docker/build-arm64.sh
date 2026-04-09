@@ -11,14 +11,14 @@
 #
 # After building, set docker_image in bedrock.toml:
 #   [local_node]
-#   docker_image = "bedrock-xrpld:arm64-local"
+#   docker_image = "lejamon/rippled-smart-contracts-vault:arm64"
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-IMAGE_NAME="${1:-bedrock-xrpld:arm64-local}"
+IMAGE_NAME="${1:-lejamon/rippled-smart-contracts-vault:arm64}"
 
 echo "Building native arm64 xrpld image: ${IMAGE_NAME}"
 echo "This will take 30-60+ minutes on the first build."

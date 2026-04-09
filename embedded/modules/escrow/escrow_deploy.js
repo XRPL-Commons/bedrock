@@ -18,7 +18,7 @@
  *   "network_id": 21465,
  *   "wallet_seed": "sXXX..." (optional),
  *   "faucet_url": "https://faucet..." (optional),
- *   "fee": "12" (optional),
+ *   "fee": "1000000" (optional, default 1 XRP),
  *   "verbose": true (optional),
  *   "algorithm": "secp256k1" (optional)
  * }
@@ -36,7 +36,7 @@
  * }
  */
 
-const xrpl = require('@willem-xrpl/xrpl');
+const xrpl = require('xrpl');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
@@ -212,7 +212,7 @@ async function deployEscrow(config) {
       Destination: destination,
       Amount: amount,
       FinishFunction: wasmHex,
-      Fee: fee || '12',
+      Fee: fee || '1000000',
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
     };
@@ -359,7 +359,7 @@ The config JSON file should contain:
   "network_id": 21465,
   "wallet_seed": "sXXX..." (optional),
   "faucet_url": "https://faucet..." (optional),
-  "fee": "12" (optional),
+  "fee": "1000000" (optional, default 1 XRP),
   "verbose": true (optional),
   "algorithm": "secp256k1" (optional)
 }

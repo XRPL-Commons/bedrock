@@ -234,13 +234,25 @@ func runEscrowFinish(cmd *cobra.Command, args []string) error {
 
 	color.Green("\n✓ Escrow finish submitted!\n\n")
 	fmt.Printf("  Tx Hash: %s\n", result.TxHash)
-	fmt.Printf("  Return Code: %d\n", result.ReturnCode)
+	fmt.Printf("  Return Code: %v\n", result.ReturnCode)
 	fmt.Printf("  Validated: %v\n", result.Validated)
 
-	if result.ReturnCode > 0 {
-		color.Green("  Result: Escrow released\n")
-	} else {
-		color.Yellow("  Result: Escrow kept locked (condition not met)\n")
+	// Return code can be int (WASM return) or string (transaction result)
+	switch v := result.ReturnCode.(type) {
+	case float64:
+		if v > 0 {
+			color.Green("  Result: Escrow released\n")
+		} else {
+			color.Yellow("  Result: Escrow kept locked (condition not met)\n")
+		}
+	case string:
+		if v == "tesSUCCESS" {
+			color.Green("  Result: Escrow released\n")
+		} else {
+			color.Yellow("  Result: %s\n", v)
+		}
+	default:
+		color.Yellow("  Result: Unknown return code type\n")
 	}
 
 	return nil

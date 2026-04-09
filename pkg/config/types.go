@@ -110,11 +110,10 @@ type DocConfig struct {
 }
 
 const (
-	// DefaultDockerImageAMD64 is the upstream amd64 image from Transia
-	DefaultDockerImageAMD64 = "transia/cluster:f5d78179c9d1fbaf8bff8b77a052e263df90faa1"
-	// DefaultDockerImageARM64 is a locally-built native arm64 image.
-	// Build with: ./docker/build-arm64.sh
-	DefaultDockerImageARM64 = "bedrock-xrpld:arm64-local"
+	// DefaultDockerImageAMD64 is the unified rippled image supporting contracts, escrows, and vaults
+	DefaultDockerImageAMD64 = "lejamon/rippled-smart-contracts-vault:arm64"
+	// DefaultDockerImageARM64 is the unified rippled image (native arm64)
+	DefaultDockerImageARM64 = "lejamon/rippled-smart-contracts-vault:arm64"
 )
 
 // DefaultLocalNodeConfig returns default local node configuration.

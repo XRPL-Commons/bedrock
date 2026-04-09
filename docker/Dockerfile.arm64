@@ -1,8 +1,8 @@
 # Multi-stage build for native arm64 xrpld with smart contracts support.
 #
-# The transia/cluster image is amd64-only. Running it under Rosetta/QEMU
-# on Apple Silicon causes WASM execution to hang. This Dockerfile builds
-# xrpld natively for arm64 from the Transia-RnD/rippled smart-contracts branch.
+# This Dockerfile builds xrpld natively for arm64 from the Transia-RnD/rippled
+# smart-contracts branch. The resulting image is published as
+# lejamon/rippled-smart-contracts-vault:arm64.
 #
 # Build time: 30-60+ minutes (Boost, gRPC, wasmi compilation).
 # Use docker/build-arm64.sh for convenience.
