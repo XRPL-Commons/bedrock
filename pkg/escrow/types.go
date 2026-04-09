@@ -39,7 +39,7 @@ type FinishConfig struct {
 // FinishResult contains finish results
 type FinishResult struct {
 	TxHash     string `json:"txHash"`
-	ReturnCode int    `json:"returnCode"`
+	ReturnCode interface{} `json:"returnCode"`
 	Validated  bool   `json:"validated"`
 }
 

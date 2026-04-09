@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 const (
@@ -76,7 +77,7 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 			AutoRemove:   false,
 		},
 		nil,
-		nil,
+		&ocispec.Platform{Architecture: "amd64", OS: "linux"},
 		ContainerName,
 	)
 	if err != nil {
@@ -175,7 +176,9 @@ func (m *Manager) Close() error {
 }
 
 func (m *Manager) pullImage(ctx context.Context, imageName string) error {
-	reader, err := m.docker.ImagePull(ctx, imageName, image.PullOptions{})
+	reader, err := m.docker.ImagePull(ctx, imageName, image.PullOptions{
+		Platform: "linux/amd64",
+	})
 	if err != nil {
 		// Pull failed - check if the image exists locally (e.g. locally-built arm64 image)
 		if m.imageExistsLocally(ctx, imageName) {

@@ -295,7 +295,7 @@ Bedrock uses embedded JavaScript modules for XRPL transaction handling:
 ~/.cache/bedrock/modules/
 ├── deploy.js           # Deployment module
 ├── call.js            # Contract calling module
-├── package.json       # Dependencies (@transia/xrpl)
+├── package.json       # Dependencies (xrpl)
 └── node_modules/      # Installed on first run
 ```
 

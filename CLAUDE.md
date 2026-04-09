@@ -198,9 +198,7 @@ bedrock node status
 bedrock node logs
 ```
 
-The node auto-detects the project type and configures accordingly:
-- **Contract projects:** Uses `transia/cluster` image with genesis file
-- **Escrow/Vault projects:** Uses `willemolding/rippled:smart-vaults.0` in standalone mode with SmartEscrow/SmartVault features
+The node uses the `lejamon/rippled-smart-contracts-vault:arm64` Docker image for all project types.
 
 A ledger advancement daemon runs in the background (PID in `.bedrock/ledger-daemon.pid`).
 
@@ -395,7 +393,7 @@ abi = "contract/build/abi.json"
 
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "transia/cluster:latest"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 
 [networks.local]
@@ -427,7 +425,7 @@ output = "escrow/target/wasm32v1-none/release"
 
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "willemolding/rippled:smart-vaults.0"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 
 [networks.local]
@@ -459,7 +457,7 @@ output = "vault/target/wasm32v1-none/release"
 
 [local_node]
 config_dir = ".bedrock/node-config"
-docker_image = "willemolding/rippled:smart-vaults.0"
+docker_image = "lejamon/rippled_smart_contract_vault_x86"
 ledger_interval = 1000
 
 [networks.local]

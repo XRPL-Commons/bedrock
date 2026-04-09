@@ -9,7 +9,7 @@
  * Usage: node clawback.js <config-json-path>
  */
 
-const xrpl = require('@transia/xrpl');
+const xrpl = require('@xrpl-commons/xrpl');
 const fs = require('fs');
 
 async function clawbackContract(config) {

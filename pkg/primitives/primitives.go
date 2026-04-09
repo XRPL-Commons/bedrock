@@ -16,7 +16,6 @@ type PrimitiveDef struct {
 	WasmTarget  string
 	RustEdition string
 	SourceDir   string
-	DockerImage string
 }
 
 // Registry maps primitive kind to its definition.
@@ -30,7 +29,6 @@ var Registry = map[string]PrimitiveDef{
 		WasmTarget:  "wasm32-unknown-unknown",
 		RustEdition: "2021",
 		SourceDir:   "contract",
-		DockerImage: "transia/cluster:f5d78179c9d1fbaf8bff8b77a052e263df90faa1",
 	},
 	Escrow: {
 		Kind:        Escrow,
@@ -41,7 +39,6 @@ var Registry = map[string]PrimitiveDef{
 		WasmTarget:  "wasm32v1-none",
 		RustEdition: "2024",
 		SourceDir:   "escrow",
-		DockerImage: "willemolding/rippled:smart-vaults.0",
 	},
 	Vault: {
 		Kind:        Vault,
@@ -52,7 +49,6 @@ var Registry = map[string]PrimitiveDef{
 		WasmTarget:  "wasm32v1-none",
 		RustEdition: "2024",
 		SourceDir:   "vault",
-		DockerImage: "willemolding/rippled:smart-vaults.0",
 	},
 }
 

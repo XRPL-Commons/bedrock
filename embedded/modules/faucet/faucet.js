@@ -30,7 +30,7 @@
  * }
  */
 
-const xrpl = require('@transia/xrpl');
+const xrpl = require('@xrpl-commons/xrpl');
 const fs = require('fs');
 const https = require('https');
 const http = require('http');

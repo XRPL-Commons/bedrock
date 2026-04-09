@@ -14,7 +14,7 @@
  *   "network_url": "wss://alphanet.xrpl.org",
  *   "network_id": 21465,
  *   "wallet_seed": "sXXX...",
- *   "fee": "12" (optional),
+ *   "fee": "1000000" (optional, default 1 XRP),
  *   "verbose": true (optional),
  *   "algorithm": "secp256k1" (optional)
  * }
@@ -29,7 +29,7 @@
  * }
  */
 
-const xrpl = require('@willem-xrpl/xrpl');
+const xrpl = require('@xrpl-commons/xrpl');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
@@ -122,7 +122,7 @@ async function cancelEscrow(config) {
       Account: wallet.address,
       Owner: owner,
       OfferSequence: escrow_sequence,
-      Fee: fee || '12',
+      Fee: fee || '1000000',
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
     };
@@ -252,7 +252,7 @@ The config JSON file should contain:
   "network_url": "wss://alphanet.xrpl.org",
   "network_id": 21465,
   "wallet_seed": "sXXX...",
-  "fee": "12" (optional),
+  "fee": "1000000" (optional, default 1 XRP),
   "verbose": true (optional),
   "algorithm": "secp256k1" (optional)
 }

@@ -303,9 +303,7 @@ bedrock node <command>
 | `status` | Check if the node is running |
 | `logs` | View node container logs |
 
-The node auto-detects the project type and configures accordingly:
-- **Contract projects:** Uses `transia/cluster` image with genesis file
-- **Escrow/Vault projects:** Uses `willemolding/rippled:smart-vaults.0` in standalone mode
+The node uses the `lejamon/rippled_smart_contract_vault_x86` Docker image for all project types.
 
 **Requirements:** Docker must be installed and running.
 

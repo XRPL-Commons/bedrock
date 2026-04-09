@@ -34,7 +34,7 @@
  * }
  */
 
-const xrpl = require('@transia/xrpl');
+const xrpl = require('@xrpl-commons/xrpl');
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
@@ -253,8 +253,11 @@ async function callContract(config) {
       Fee: fee || '1000000',
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
-      NetworkID: config.network_id,
     };
+
+    if (config.network_id && config.network_id > 1024) {
+      tx.NetworkID = config.network_id;
+    }
 
     const signed = wallet.sign(tx);
 
