@@ -1,3 +1,15 @@
+# Compiled binary at repo root (local builds; the release workflow ships
+# platform binaries via GitHub releases).
+/bedrock
+
+# Go build artifacts and test caches
+*.test
+*.out
+coverage.*
+
+# Local notes/scratch from CLAUDE.md workflow
+tasks/
+
 # Dependencies
 docs/node_modules/
 docs/.vitepress/dist/
@@ -8,3 +20,4 @@ docs/.vitepress/cache/
 
 # IDE
 .idea/
+.vscode/

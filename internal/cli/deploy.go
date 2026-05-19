@@ -49,7 +49,7 @@ Use --skip-build or --skip-abi to skip these steps.`,
 func init() {
 	rootCmd.AddCommand(deployCmd)
 
-	deployCmd.Flags().StringVarP(&deployNetwork, "network", "n", "alphanet", "Network to deploy to (local, alphanet, testnet, mainnet)")
+	deployCmd.Flags().StringVarP(&deployNetwork, "network", "n", "local", "Network to deploy to (local, alphanet, testnet, mainnet)")
 	deployCmd.Flags().StringVarP(&deployWallet, "wallet", "w", "", "Wallet seed or name (generates new if not provided)")
 	deployCmd.Flags().StringVarP(&deployABI, "abi", "a", "abi.json", "Path to ABI file")
 	deployCmd.Flags().BoolVar(&deploySkipBuild, "skip-build", false, "Skip building the contract")
@@ -211,7 +211,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	// Create deployer
-	verbose := false // TODO: get from global flag
+	verbose := Verbose()
 	d, err := deployer.NewDeployer(verbose)
 	if err != nil {
 		color.Red("✗ Failed to initialize deployer: %v\n", err)

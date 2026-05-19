@@ -3,9 +3,13 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
 )
+
+// configFileName is the project manifest filename.
+const configFileName = "bedrock.toml"
 
 // Load reads the bedrock.toml configuration file
 func Load(path string) (*Config, error) {
@@ -43,9 +47,49 @@ func Load(path string) (*Config, error) {
 	return &cfg, nil
 }
 
-// LoadFromWorkingDir loads bedrock.toml from the current working directory
+// LoadFromWorkingDir loads bedrock.toml by walking upward from the current
+// working directory until the project root is found. This lets users invoke
+// bedrock from within a subdirectory (e.g. contract/) the same way cargo and
+// git work.
 func LoadFromWorkingDir() (*Config, error) {
-	return Load("bedrock.toml")
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get working directory: %w", err)
+	}
+
+	path, err := findConfigUpward(cwd)
+	if err != nil {
+		return nil, err
+	}
+
+	// Chdir to project root so relative paths in bedrock.toml resolve as
+	// expected by the rest of the CLI (which assumes CWD == project root).
+	root := filepath.Dir(path)
+	if root != cwd {
+		if err := os.Chdir(root); err != nil {
+			return nil, fmt.Errorf("failed to chdir to project root %s: %w", root, err)
+		}
+	}
+
+	return Load(configFileName)
+}
+
+// findConfigUpward walks from start toward the filesystem root looking for
+// bedrock.toml. Returns an error mentioning the original directory so the
+// user knows the search scope.
+func findConfigUpward(start string) (string, error) {
+	dir := start
+	for {
+		candidate := filepath.Join(dir, configFileName)
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
+			return candidate, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("no %s found in %s or any parent directory; run `bedrock init <name>` to create a project", configFileName, start)
+		}
+		dir = parent
+	}
 }
 
 // Save writes the configuration to a file

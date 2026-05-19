@@ -34,7 +34,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(deleteCmd)
 
-	deleteCmd.Flags().StringVarP(&deleteNetwork, "network", "n", "alphanet", "Network")
+	deleteCmd.Flags().StringVarP(&deleteNetwork, "network", "n", "local", "Network")
 	deleteCmd.Flags().StringVarP(&deleteWallet, "wallet", "w", "", "Wallet seed or name (required)")
 	deleteCmd.Flags().StringVar(&deleteAlgorithm, "algorithm", "secp256k1", "Cryptographic algorithm")
 	deleteCmd.Flags().StringVar(&deleteFee, "fee", "1000000", "Transaction fee in drops")

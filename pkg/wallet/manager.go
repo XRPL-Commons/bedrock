@@ -104,7 +104,7 @@ func (wm *WalletManager) SaveWallet(wallet *Wallet, password string) error {
 		return fmt.Errorf("failed to generate salt: %w", err)
 	}
 
-	key := pbkdf2.Key([]byte(password), salt, 100000, 32, sha256.New)
+	key := pbkdf2.Key([]byte(password), salt, PBKDF2Iterations, 32, sha256.New)
 
 	// Encrypt the seed
 	encryptedSeed, nonce, err := wm.encrypt([]byte(wallet.Seed), key)
@@ -121,6 +121,7 @@ func (wm *WalletManager) SaveWallet(wallet *Wallet, password string) error {
 		EncryptedSeed: hex.EncodeToString(encryptedSeed),
 		Salt:          hex.EncodeToString(salt),
 		Nonce:         hex.EncodeToString(nonce),
+		Iterations:    PBKDF2Iterations,
 	}
 
 	// Save to disk
@@ -142,7 +143,13 @@ func (wm *WalletManager) LoadWallet(name string, password string) (*Wallet, erro
 		return nil, fmt.Errorf("invalid salt in keystore: %w", err)
 	}
 
-	key := pbkdf2.Key([]byte(password), salt, 100000, 32, sha256.New)
+	iterations := keystore.Iterations
+	if iterations <= 0 {
+		// Pre-v2 keystores omit the field; they were always written with the
+		// legacy iteration count.
+		iterations = LegacyPBKDF2Iterations
+	}
+	key := pbkdf2.Key([]byte(password), salt, iterations, 32, sha256.New)
 
 	// Decrypt seed
 	encryptedSeed, err := hex.DecodeString(keystore.EncryptedSeed)

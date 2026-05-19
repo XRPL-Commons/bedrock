@@ -43,7 +43,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(modifyCmd)
 
-	modifyCmd.Flags().StringVarP(&modifyNetwork, "network", "n", "alphanet", "Network")
+	modifyCmd.Flags().StringVarP(&modifyNetwork, "network", "n", "local", "Network")
 	modifyCmd.Flags().StringVarP(&modifyWallet, "wallet", "w", "", "Wallet seed or name (required)")
 	modifyCmd.Flags().StringVar(&modifyWasm, "wasm", "", "New WASM file path")
 	modifyCmd.Flags().StringVar(&modifyABI, "abi", "", "New ABI file path")

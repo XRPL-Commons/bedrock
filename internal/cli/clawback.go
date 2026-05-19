@@ -35,7 +35,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(clawbackCmd)
 
-	clawbackCmd.Flags().StringVarP(&clawbackNetwork, "network", "n", "alphanet", "Network")
+	clawbackCmd.Flags().StringVarP(&clawbackNetwork, "network", "n", "local", "Network")
 	clawbackCmd.Flags().StringVarP(&clawbackWallet, "wallet", "w", "", "Wallet seed or name (required)")
 	clawbackCmd.Flags().StringVar(&clawbackAmount, "amount", "", "Amount to claw back (e.g. '100/USD/rIssuer...' or drops)")
 	clawbackCmd.Flags().StringVar(&clawbackAlgorithm, "algorithm", "secp256k1", "Cryptographic algorithm")

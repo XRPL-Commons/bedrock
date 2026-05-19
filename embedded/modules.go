@@ -148,7 +148,9 @@ func extractAndInstall(cacheDir string, modules []moduleFile) error {
 			return fmt.Errorf("failed to read %s: %w", m.EmbedPath, err)
 		}
 		outPath := filepath.Join(cacheDir, m.CacheName)
-		if err := os.WriteFile(outPath, data, 0755); err != nil {
+		// Modules are invoked via `node <path>`, never executed directly,
+		// so they do not need the executable bit.
+		if err := os.WriteFile(outPath, data, 0644); err != nil {
 			return fmt.Errorf("failed to write %s: %w", m.CacheName, err)
 		}
 	}

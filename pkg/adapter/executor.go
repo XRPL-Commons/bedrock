@@ -13,6 +13,12 @@ import (
 	"github.com/xrpl-commons/bedrock/embedded"
 )
 
+// stdinConfigArg is the sentinel argv value that tells embedded JS modules
+// to read their config JSON from stdin instead of from a file path. Sending
+// the config over stdin avoids leaking wallet seeds via /proc/<pid>/cmdline
+// (argv is world-readable on Linux) and via lingering temp files.
+const stdinConfigArg = "-"
+
 // Executor handles execution of embedded JavaScript modules
 type Executor struct {
 	modulesDir string
@@ -39,7 +45,10 @@ func NewGroupExecutor(group string, verbose bool) (*Executor, error) {
 	}, nil
 }
 
-// ExecuteModule runs a JavaScript module with JSON config input/output
+// ExecuteModule runs a JavaScript module with JSON config input/output.
+// The config is marshalled to JSON and streamed to the module on stdin
+// (rather than via a tempfile path on argv) so wallet seeds do not appear
+// in process listings or stale temp files.
 func (e *Executor) ExecuteModule(ctx context.Context, moduleName string, config interface{}) (*Result, error) {
 	// Get module path
 	modulePath := filepath.Join(e.modulesDir, moduleName)
@@ -47,20 +56,15 @@ func (e *Executor) ExecuteModule(ctx context.Context, moduleName string, config 
 		return nil, fmt.Errorf("module %s not found: %w", moduleName, err)
 	}
 
-	// Create temp config file
-	configFile, err := e.writeConfigFile(config)
+	configJSON, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("failed to write config: %w", err)
-	}
-	defer os.Remove(configFile)
-
-	// Verify config file exists before running
-	if _, err := os.Stat(configFile); err != nil {
-		return nil, fmt.Errorf("config file disappeared: %w", err)
+		return nil, fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	// Execute Node.js module
-	cmd := exec.CommandContext(ctx, "node", modulePath, configFile)
+	// Execute Node.js module. The "-" argument tells the module to read
+	// its config JSON from stdin.
+	cmd := exec.CommandContext(ctx, "node", modulePath, stdinConfigArg)
+	cmd.Stdin = bytes.NewReader(configJSON)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -68,8 +72,7 @@ func (e *Executor) ExecuteModule(ctx context.Context, moduleName string, config 
 	// In verbose mode, show stderr in real-time. Otherwise capture it.
 	if e.verbose {
 		cmd.Stderr = os.Stderr
-		fmt.Printf("[executor] Running: node %s %s\n", modulePath, configFile)
-		fmt.Printf("[executor] Config file exists: %v\n", configFile)
+		fmt.Printf("[executor] Running: node %s %s (config via stdin, %d bytes)\n", modulePath, stdinConfigArg, len(configJSON))
 	} else {
 		cmd.Stderr = &stderr
 	}
@@ -104,38 +107,6 @@ func (e *Executor) ExecuteModule(ctx context.Context, moduleName string, config 
 	}
 
 	return result, nil
-}
-
-// writeConfigFile writes the config object as JSON to a temp file
-func (e *Executor) writeConfigFile(config interface{}) (string, error) {
-	data, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal config: %w", err)
-	}
-
-	// Create temp file
-	tmpFile, err := os.CreateTemp("", "bedrock-config-*.json")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
-	}
-
-	if _, err := tmpFile.Write(data); err != nil {
-		tmpFile.Close()
-		os.Remove(tmpFile.Name())
-		return "", fmt.Errorf("failed to write config: %w", err)
-	}
-
-	if err := tmpFile.Close(); err != nil {
-		os.Remove(tmpFile.Name())
-		return "", fmt.Errorf("failed to close temp file: %w", err)
-	}
-
-	if e.verbose {
-		fmt.Printf("[executor] Config file: %s\n", tmpFile.Name())
-		fmt.Printf("[executor] Config data:\n%s\n", string(data))
-	}
-
-	return tmpFile.Name(), nil
 }
 
 // parseResult parses the JSON result from module output

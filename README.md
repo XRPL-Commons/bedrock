@@ -17,7 +17,7 @@ Bedrock is a developer tool for building, deploying, and interacting with XRPL s
 
 Before installing Bedrock, ensure you have:
 
-- **[Go](https://go.dev/dl/)** (1.21 or later) - For building/installing Bedrock
+- **[Go](https://go.dev/dl/)** (1.24 or later) - For building/installing Bedrock
 - **[Node.js](https://nodejs.org/)** (18 or later) - For XRPL transaction handling
 - **[Rust](https://rustup.rs/)** - For compiling smart contracts
   ```bash
@@ -28,7 +28,7 @@ Before installing Bedrock, ensure you have:
 ### Verify Installation
 
 ```bash
-go version      # Should show 1.21+
+go version      # Should show 1.24+
 node --version  # Should show v18+
 rustc --version # Should show 1.70+
 cargo --version
@@ -48,8 +48,8 @@ This auto-detects your OS and architecture, downloads the latest release binary,
 
 ```bash
 # Clone the repository
-git clone https://github.com/xrpl-bedrock/bedrock.git
-cd bedrock
+git clone https://github.com/XRPL-Commons/Bedrock.git
+cd Bedrock
 
 # Build and install
 go build -o bedrock cmd/bedrock/main.go
@@ -173,8 +173,8 @@ bedrock deploy --wallet sXXX...     # Use specific wallet
 
 ```bash
 bedrock call <contract> <function> \
-  --wallet sXXX...                  # Wallet seed (required)
-  --network alphanet                # Network (default: alphanet)
+  --wallet sXXX...                  # Wallet seed or jade keystore name (required)
+  --network local                   # Network (default: local; use alphanet for testnet)
   --params '{"key":"value"}'        # JSON parameters
   --params-file params.json         # Parameters from file
   --gas 1000000                     # Computation allowance
@@ -184,10 +184,12 @@ bedrock call <contract> <function> \
 ### Node Management
 
 ```bash
-bedrock node start    # Start local XRPL node
-bedrock node stop     # Stop local node
-bedrock node status   # Check if running
-bedrock node logs     # View node logs (coming soon)
+bedrock node start             # Start local XRPL node
+bedrock node stop              # Stop local node
+bedrock node status            # Check if running
+bedrock node logs              # Print recent node logs
+bedrock node logs --follow     # Stream logs (like `docker logs -f`)
+bedrock node logs --tail 100   # Show only the last N lines
 ```
 
 ## Project Configuration
@@ -360,7 +362,7 @@ bedrock init my-project
 Contributions are welcome! Please check out:
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [BRANDING.md](BRANDING.md) - Design philosophy
-- [Issues](https://github.com/xrpl-bedrock/bedrock/issues) - Bug reports & features
+- [Issues](https://github.com/XRPL-Commons/Bedrock/issues) - Bug reports & features
 
 ## Roadmap
 
