@@ -39,7 +39,7 @@ Examples:
 func init() {
 	rootCmd.AddCommand(callCmd)
 
-	callCmd.Flags().StringVarP(&callNetwork, "network", "n", "alphanet", "Network to call on (local, alphanet, testnet, mainnet)")
+	callCmd.Flags().StringVarP(&callNetwork, "network", "n", "local", "Network to call on (local, alphanet, testnet, mainnet)")
 	callCmd.Flags().StringVarP(&callWallet, "wallet", "w", "", "Wallet seed or name (required)")
 	callCmd.Flags().StringVarP(&callABI, "abi", "a", "abi.json", "Path to ABI file")
 	callCmd.Flags().StringVarP(&callParams, "params", "p", "", "Parameters as JSON string")
@@ -123,7 +123,7 @@ func runCall(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	// Create caller
-	verbose := false // TODO: get from global flag
+	verbose := Verbose()
 	c, err := caller.NewCaller(verbose)
 	if err != nil {
 		color.Red("✗ Failed to initialize caller: %v\n", err)

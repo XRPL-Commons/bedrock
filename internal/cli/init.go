@@ -72,14 +72,18 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create project directory: %w", err)
 	}
 
-	// Create common directories
-	commonDirs := []string{
-		filepath.Join(projectName, ".wallets"),
-		filepath.Join(projectName, ".bedrock", "node-config"),
+	// Create common directories. The wallets dir holds private key material,
+	// so restrict it to the owner.
+	dirSpecs := []struct {
+		path string
+		mode os.FileMode
+	}{
+		{filepath.Join(projectName, ".wallets"), 0700},
+		{filepath.Join(projectName, ".bedrock", "node-config"), 0755},
 	}
-	for _, dir := range commonDirs {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return fmt.Errorf("failed to create directory %s: %w", dir, err)
+	for _, d := range dirSpecs {
+		if err := os.MkdirAll(d.path, d.mode); err != nil {
+			return fmt.Errorf("failed to create directory %s: %w", d.path, err)
 		}
 	}
 
@@ -119,11 +123,27 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 func resolvePrimitives() ([]string, error) {
 	if initPrimitives != "" {
-		p := strings.TrimSpace(initPrimitives)
-		if !primitives.IsValid(p) {
-			return nil, fmt.Errorf("unknown primitive %q (available: %s)", p, strings.Join(primitives.All(), ", "))
+		parts := strings.Split(initPrimitives, ",")
+		seen := make(map[string]bool, len(parts))
+		out := make([]string, 0, len(parts))
+		for _, raw := range parts {
+			p := strings.TrimSpace(raw)
+			if p == "" {
+				continue
+			}
+			if !primitives.IsValid(p) {
+				return nil, fmt.Errorf("unknown primitive %q (available: %s)", p, strings.Join(primitives.All(), ", "))
+			}
+			if seen[p] {
+				continue
+			}
+			seen[p] = true
+			out = append(out, p)
 		}
-		return []string{p}, nil
+		if len(out) == 0 {
+			return nil, fmt.Errorf("no primitives specified")
+		}
+		return out, nil
 	}
 
 	// Check if stdin is a terminal

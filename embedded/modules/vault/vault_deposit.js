@@ -257,18 +257,22 @@ Output is pure JSON to stdout.
 
   const configPath = args[0];
 
-  if (!fs.existsSync(configPath)) {
-    const errorResult = {
-      success: false,
-      error: `Config file not found: ${configPath}`,
-      details: 'Please provide a valid config JSON file path',
-    };
-    console.log(JSON.stringify(errorResult));
-    process.exit(1);
-  }
-
   try {
-    const configContent = fs.readFileSync(configPath, 'utf8');
+    let configContent;
+    if (!configPath || configPath === '-') {
+      // Config piped via stdin; reading fd 0 synchronously is supported in Node 12+.
+      configContent = fs.readFileSync(0, 'utf8');
+    } else if (fs.existsSync(configPath)) {
+      configContent = fs.readFileSync(configPath, 'utf8');
+    } else {
+      const errorResult = {
+        success: false,
+        error: `Config file not found: ${configPath}`,
+        details: 'Provide config via stdin (recommended) or as a valid file path',
+      };
+      console.log(JSON.stringify(errorResult));
+      process.exit(1);
+    }
     const config = JSON.parse(configContent);
     vaultDeposit(config);
   } catch (error) {

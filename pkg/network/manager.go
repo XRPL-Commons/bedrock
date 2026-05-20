@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
+	"runtime"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -13,6 +15,19 @@ import (
 	"github.com/docker/go-connections/nat"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
+
+// dockerPlatform returns the Docker `linux/<arch>` platform string for the
+// host. Falling back to amd64 means an Apple Silicon host without an arm64
+// image still works (via Rosetta) but a host that has an arm64-only image
+// available locally is no longer forced through an unnecessary amd64 pull.
+func dockerPlatform() (osName, arch string) {
+	switch runtime.GOARCH {
+	case "arm64", "aarch64":
+		return "linux", "arm64"
+	default:
+		return "linux", "amd64"
+	}
+}
 
 const (
 	ContainerName       = "bedrock-xrpl-node"
@@ -69,6 +84,7 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 		containerCfg.Entrypoint = opts.Entrypoint
 	}
 
+	platOS, platArch := dockerPlatform()
 	resp, err := m.docker.ContainerCreate(ctx,
 		containerCfg,
 		&container.HostConfig{
@@ -77,7 +93,7 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 			AutoRemove:   false,
 		},
 		nil,
-		&ocispec.Platform{Architecture: "amd64", OS: "linux"},
+		&ocispec.Platform{Architecture: platArch, OS: platOS},
 		ContainerName,
 	)
 	if err != nil {
@@ -89,18 +105,19 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 		return fmt.Errorf("failed to start container: %w", err)
 	}
 
-	// Start ledger service if interval is configured
+	// Start ledger service if interval is configured. The node container is
+	// already running, so failures here leave the user with a usable (if
+	// degraded) environment — we surface warnings on stderr instead of
+	// swallowing them onto stdout the way the previous code did.
 	if opts.LedgerInterval > 0 && opts.RPCURL != "" {
 		ledgerService, err := NewLedgerService(opts.RPCURL, opts.LedgerInterval)
 		if err != nil {
-			// Log warning but don't fail - node is already running
-			fmt.Printf("Warning: failed to create ledger service: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Warning: failed to create ledger service: %v\n", err)
 			return nil
 		}
 
-		// Wait for node to be ready before starting ledger service
 		if err := ledgerService.WaitForReady(ctx, DefaultNodeReadyTimeout); err != nil {
-			fmt.Printf("Warning: timeout waiting for node to be ready: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Warning: node not ready within %s: %v\n", DefaultNodeReadyTimeout, err)
 			return nil
 		}
 
@@ -108,7 +125,7 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 		// running even after the CLI command returns. The service will be
 		// stopped when Stop() is called or when the process exits.
 		if err := ledgerService.Start(context.Background()); err != nil {
-			fmt.Printf("Warning: failed to start ledger service: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Warning: failed to start ledger service: %v\n", err)
 			return nil
 		}
 
@@ -145,6 +162,37 @@ func (m *Manager) Stop(ctx context.Context) error {
 	return nil
 }
 
+// StreamLogs streams the container's stdout/stderr to the provided writer.
+// Set follow=true to keep streaming as new lines arrive (like `docker logs -f`).
+// Returns an error if the node is not running.
+func (m *Manager) StreamLogs(ctx context.Context, w io.Writer, follow bool, tail string) error {
+	containerInfo, err := m.getContainer(ctx)
+	if err != nil {
+		return fmt.Errorf("node is not running")
+	}
+
+	reader, err := m.docker.ContainerLogs(ctx, containerInfo.ID, container.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     follow,
+		Tail:       tail,
+		Timestamps: false,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to open container logs: %w", err)
+	}
+	defer reader.Close()
+
+	// rippled images don't allocate a TTY, so logs come back in the Docker
+	// multiplexed stream format. io.Copy works for the common case where
+	// the caller just wants the bytes; for strict stdout/stderr separation
+	// callers should use stdcopy themselves.
+	if _, err := io.Copy(w, reader); err != nil && err != io.EOF {
+		return fmt.Errorf("error reading logs: %w", err)
+	}
+	return nil
+}
+
 // Status returns the status of the local node
 func (m *Manager) Status(ctx context.Context) (*NodeStatus, error) {
 	containerInfo, err := m.getContainer(ctx)
@@ -176,8 +224,9 @@ func (m *Manager) Close() error {
 }
 
 func (m *Manager) pullImage(ctx context.Context, imageName string) error {
+	platOS, platArch := dockerPlatform()
 	reader, err := m.docker.ImagePull(ctx, imageName, image.PullOptions{
-		Platform: "linux/amd64",
+		Platform: fmt.Sprintf("%s/%s", platOS, platArch),
 	})
 	if err != nil {
 		// Pull failed - check if the image exists locally (e.g. locally-built arm64 image)

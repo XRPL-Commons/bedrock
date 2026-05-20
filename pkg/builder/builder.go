@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -128,12 +129,23 @@ func (b *Builder) verifyToolchain() error {
 	return nil
 }
 
-// ensureWasmTarget adds the given WASM target if not present
+// ensureWasmTarget adds the given WASM target if not present.
+// If the target is already installed, rustup exits 0 and we move on.
+// If rustup itself is missing (e.g. Rust was installed via Homebrew without
+// rustup), we fall through and let the subsequent cargo build surface the
+// real problem.
 func (b *Builder) ensureWasmTarget(ctx context.Context, target string) error {
-	cmd := exec.CommandContext(ctx, "rustup", "target", "add", target)
-	if err := cmd.Run(); err != nil {
-		// Not fatal if rustup fails (target might already be installed)
+	if _, err := exec.LookPath("rustup"); err != nil {
+		// No rustup; the user's Rust install may already have the target
+		// or fail later with a clearer message from cargo.
 		return nil
+	}
+
+	cmd := exec.CommandContext(ctx, "rustup", "target", "add", target)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("rustup target add %s failed: %w\n%s", target, err, stderr.String())
 	}
 	return nil
 }

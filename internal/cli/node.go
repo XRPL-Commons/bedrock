@@ -23,6 +23,11 @@ const (
 	LedgerDaemonPIDFile = ".bedrock/ledger-daemon.pid"
 )
 
+var (
+	nodeLogsFollow bool
+	nodeLogsTail   string
+)
+
 var nodeCmd = &cobra.Command{
 	Use:   "node <start|stop|status|logs>",
 	Short: "Manage local XRPL node",
@@ -35,13 +40,15 @@ Commands:
   start   - Start the local node
   stop    - Stop the local node
   status  - Check if node is running
-  logs    - View node logs`,
+  logs    - View node logs (use --follow to stream)`,
 	Args: cobra.ExactArgs(1),
 	RunE: runNode,
 }
 
 func init() {
 	rootCmd.AddCommand(nodeCmd)
+	nodeCmd.Flags().BoolVarP(&nodeLogsFollow, "follow", "f", false, "Follow log output (logs only)")
+	nodeCmd.Flags().StringVar(&nodeLogsTail, "tail", "all", "Number of lines to show from the end (logs only)")
 }
 
 func runNode(cmd *cobra.Command, args []string) error {
@@ -62,7 +69,7 @@ func runNode(cmd *cobra.Command, args []string) error {
 	case "status":
 		return nodeStatus(ctx, manager)
 	case "logs":
-		return nodeLogs(manager)
+		return nodeLogs(ctx, manager)
 	default:
 		return fmt.Errorf("unknown subcommand: %s (use: start, stop, status, logs)", subcommand)
 	}
@@ -194,19 +201,23 @@ func startLedgerDaemon(intervalMs int) error {
 		return fmt.Errorf("failed to start daemon: %w", err)
 	}
 
-	// Write PID file
+	// Write PID file. 0600 because nothing outside the project owner needs it,
+	// and aligns with the keystore manager's permission model.
 	pidFile := filepath.Join(".bedrock", "ledger-daemon.pid")
-	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
+	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0600); err != nil {
 		// Kill the process if we can't write PID file
 		cmd.Process.Kill()
 		logFile.Close()
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}
 
-	// Don't wait for the process - let it run in background
+	// Don't wait for the process - let it run in background. Surface unexpected
+	// exits into the daemon log so the user can diagnose silent crashes.
 	go func() {
-		cmd.Wait()
-		logFile.Close()
+		defer logFile.Close()
+		if err := cmd.Wait(); err != nil {
+			fmt.Fprintf(logFile, "\n[bedrock] ledger daemon exited: %v\n", err)
+		}
 	}()
 
 	return nil
@@ -267,13 +278,24 @@ func stopLedgerDaemon() error {
 		return nil
 	}
 
-	// Wait a moment for graceful shutdown
-	time.Sleep(500 * time.Millisecond)
+	// Poll for exit up to ~2 seconds, then SIGKILL if it's still alive
+	// instead of silently leaving a stuck daemon while removing the PID file.
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if err := process.Signal(syscall.Signal(0)); err != nil {
+			os.Remove(pidFile)
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 
-	// Clean up PID file
+	if err := process.Signal(syscall.SIGKILL); err != nil {
+		// Already gone between the last poll and now.
+		os.Remove(pidFile)
+		return nil
+	}
 	os.Remove(pidFile)
-
-	return nil
+	return fmt.Errorf("ledger daemon did not exit on SIGTERM (pid %d); sent SIGKILL", pid)
 }
 
 func nodeStatus(ctx context.Context, manager *network.Manager) error {
@@ -337,11 +359,10 @@ func isLedgerDaemonRunning() bool {
 	return err == nil
 }
 
-func nodeLogs(manager *network.Manager) error {
-	color.Cyan("Fetching local node logs (not yet implemented)\n")
-	fmt.Println()
-
-	color.Yellow("Log viewing coming soon. Use 'docker logs bedrock-xrpl-node' for now.\n")
-
+func nodeLogs(ctx context.Context, manager *network.Manager) error {
+	if err := manager.StreamLogs(ctx, os.Stdout, nodeLogsFollow, nodeLogsTail); err != nil {
+		color.Red("✗ %v\n", err)
+		return err
+	}
 	return nil
 }

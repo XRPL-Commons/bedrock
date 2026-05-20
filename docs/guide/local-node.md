@@ -6,7 +6,7 @@ Bedrock manages local XRPL nodes using Docker, providing a fast development envi
 
 Bedrock's local node functionality wraps Docker to run a local XRPL node (rippled). It auto-detects your project type and configures the node accordingly:
 
-- **All project types** — Uses the unified `lejamon/rippled_smart_contract_vault_x86` image
+- **All project types** — Uses the unified `lejamon/rippled_smart_contract_vault_x86` image; the CLI auto-selects `linux/arm64` on Apple Silicon and `linux/amd64` elsewhere
 
 All project types get:
 
@@ -77,11 +77,19 @@ Endpoints:
 
 ### `bedrock node logs`
 
-View node container logs.
+View node container logs. Reads directly from the Docker container's
+stdout/stderr.
 
 ```bash
-bedrock node logs
+bedrock node logs              # print all current logs and exit
+bedrock node logs --follow     # stream new lines as they arrive (Ctrl-C to stop)
+bedrock node logs --tail 100   # only the last 100 lines
 ```
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--follow` | `-f` | Keep streaming after the current logs | `false` |
+| `--tail` | | Number of lines to show from the end (or `all`) | `all` |
 
 ## Configuration
 

@@ -155,7 +155,7 @@ func runEscrowDeploy(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose := Verbose()
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err
@@ -181,7 +181,7 @@ func runEscrowDeploy(cmd *cobra.Command, args []string) error {
 	color.Green("\n✓ Smart escrow created!\n\n")
 	fmt.Printf("  Tx Hash: %s\n", result.TxHash)
 	fmt.Printf("  Wallet: %s\n", result.WalletAddress)
-	fmt.Printf("  Seed: %s\n", result.WalletSeed)
+	fmt.Printf("  Seed: %s\n", maskSeed(result.WalletSeed))
 	fmt.Printf("  Escrow Sequence: %d\n", result.EscrowSequence)
 	fmt.Printf("  Validated: %v\n", result.Validated)
 
@@ -212,7 +212,7 @@ func runEscrowFinish(cmd *cobra.Command, args []string) error {
 
 	color.Cyan("Finishing escrow %s seq %d...\n", owner, seq)
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose := Verbose()
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err
@@ -282,7 +282,7 @@ func runEscrowCancel(cmd *cobra.Command, args []string) error {
 
 	color.Cyan("Cancelling escrow %s seq %d...\n", owner, seq)
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose := Verbose()
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err
@@ -325,7 +325,7 @@ func runEscrowStatus(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unknown network %q", escrowNetwork)
 	}
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose := Verbose()
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err
