@@ -8,7 +8,7 @@ Before installing Bedrock, ensure you have the following tools:
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| [Go](https://go.dev/dl/) | 1.21+ | Building Bedrock from source |
+| [Go](https://go.dev/dl/) | 1.24+ | Building Bedrock from source |
 | [Node.js](https://nodejs.org/) | 18+ | XRPL transaction handling |
 | [Rust](https://rustup.rs/) | 1.70+ | Compiling smart contracts |
 | [Docker](https://www.docker.com/) | Latest | Local XRPL node (optional) |
@@ -16,7 +16,7 @@ Before installing Bedrock, ensure you have the following tools:
 ### Verify Prerequisites
 
 ```bash
-go version      # Should show 1.21+
+go version      # Should show 1.24+
 node --version  # Should show v18+
 rustc --version # Should show 1.70+
 cargo --version

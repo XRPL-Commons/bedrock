@@ -96,7 +96,7 @@ bedrock CLI (Go)
 
 Before installing Bedrock, ensure you have:
 
-- **[Go](https://go.dev/dl/)** (1.21 or later) - For building Bedrock from source
+- **[Go](https://go.dev/dl/)** (1.24 or later) - For building Bedrock from source
 - **[Node.js](https://nodejs.org/)** (18 or later) - For XRPL transaction handling
 - **[Rust](https://rustup.rs/)** - For compiling smart contracts
 - **[Docker](https://www.docker.com/)** (optional) - For running a local XRPL node

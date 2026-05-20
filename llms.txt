@@ -62,7 +62,7 @@ Bedrock compiles Rust code to WebAssembly (WASM) and deploys it to XRPL networks
 - `bedrock node start` - Start local XRPL node in Docker (auto-detects project type)
 - `bedrock node stop` - Stop the local node
 - `bedrock node status` - Check if node is running
-- `bedrock node logs` - View node logs
+- `bedrock node logs` - View node logs (supports `--follow` and `--tail N`)
 
 ### Wallet Management (Jade)
 - `bedrock jade new <name>` - Create new encrypted wallet
@@ -326,7 +326,7 @@ pub extern "C" fn on_withdraw() -> i32 {
 
 ## Requirements
 
-- Go 1.21+ (for building Bedrock)
+- Go 1.24+ (for building Bedrock)
 - Node.js 18+ (for XRPL transaction handling)
 - Rust with wasm32-unknown-unknown target (contracts) and wasm32v1-none target (escrow/vault)
 - Docker (optional, for local node)

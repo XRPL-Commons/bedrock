@@ -22,7 +22,7 @@ bedrock deploy [flags]
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--network` | `-n` | Target network (local, alphanet) | `alphanet` |
+| `--network` | `-n` | Target network (local, alphanet) | `local` |
 | `--wallet` | `-w` | Wallet seed for signing transactions | Auto-generated |
 | `--skip-build` | | Skip automatic contract rebuild | `false` |
 | `--skip-abi` | | Skip ABI generation | `false` |
@@ -32,11 +32,11 @@ bedrock deploy [flags]
 ### Examples
 
 ```bash
-# Deploy to alphanet (default)
+# Deploy to local node (default)
 bedrock deploy
 
-# Deploy to local node
-bedrock deploy --network local
+# Deploy to alphanet (testnet)
+bedrock deploy --network alphanet
 
 # Deploy with existing wallet
 bedrock deploy --wallet sEd7...
@@ -86,7 +86,7 @@ bedrock call <contract> <function> [flags]
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--wallet` | `-w` | Wallet seed for signing (required) | - |
-| `--network` | `-n` | Target network | `alphanet` |
+| `--network` | `-n` | Target network | `local` |
 | `--params` | `-p` | JSON string of function parameters | - |
 | `--params-file` | `-f` | Path to JSON file with parameters | - |
 | `--gas` | `-g` | Computation allowance | `1000000` |

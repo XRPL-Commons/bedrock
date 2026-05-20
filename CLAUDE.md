@@ -70,11 +70,11 @@ bedrock build --release=false
 ### Deploying Smart Contracts
 
 ```bash
-# Deploy to alphanet (default)
+# Deploy to local node (default)
 bedrock deploy
 
-# Deploy to local node
-bedrock deploy --network local
+# Deploy to alphanet (testnet)
+bedrock deploy --network alphanet
 
 # Deploy with specific wallet
 bedrock deploy --wallet <seed>
@@ -194,11 +194,13 @@ bedrock node stop
 # Check status
 bedrock node status
 
-# View logs
+# View logs (use --follow to stream, --tail N to limit)
 bedrock node logs
+bedrock node logs --follow
+bedrock node logs --tail 100
 ```
 
-The node uses the `lejamon/rippled-smart-contracts-vault:arm64` Docker image for all project types.
+The node uses the unified `lejamon/rippled_smart_contract_vault_x86` Docker image for all project types (the CLI auto-selects the right platform — `linux/arm64` on Apple Silicon, `linux/amd64` elsewhere).
 
 A ledger advancement daemon runs in the background (PID in `.bedrock/ledger-daemon.pid`).
 

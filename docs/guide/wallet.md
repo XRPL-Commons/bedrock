@@ -7,10 +7,16 @@
 Jade provides a secure way to manage your XRPL wallets by encrypting them and storing them on disk. This means you don't have to expose your wallet seeds in your command-line history or scripts.
 
 **Security features:**
-- AES-256-GCM encryption with PBKDF2 key derivation
+- AES-256-GCM encryption with PBKDF2-HMAC-SHA256 key derivation
+  (600,000 iterations, aligned with OWASP 2023 baseline)
+- Per-keystore iteration count, so future tightening of KDF parameters
+  does not break existing wallets
 - Password-protected access
 - Supports secp256k1 and ed25519 algorithms
-- Stored in `~/.config/bedrock/wallets/`
+- Stored in `~/.config/bedrock/wallets/` (directory mode `0700`,
+  keystore files `0600`)
+- Wallet names like `swap-vault` (starting with `s`) are resolved as
+  keystore lookups, not raw seeds, in every `--wallet` flag
 
 ## Commands
 

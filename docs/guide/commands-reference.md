@@ -101,7 +101,7 @@ bedrock deploy [flags]
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--network` | `-n` | Target network (local, alphanet) | `alphanet` |
+| `--network` | `-n` | Target network (local, alphanet) | `local` |
 | `--wallet` | `-w` | Wallet seed or jade name | Auto-generated |
 | `--skip-build` | | Skip automatic contract rebuild | `false` |
 | `--skip-abi` | | Skip ABI generation | `false` |
@@ -111,8 +111,8 @@ bedrock deploy [flags]
 **Transaction fee:** 100 XRP (100,000,000 drops)
 
 ```bash
-bedrock deploy                          # Deploy to alphanet
-bedrock deploy --network local          # Deploy to local node
+bedrock deploy                          # Deploy to local node (default)
+bedrock deploy --network alphanet       # Deploy to alphanet (testnet)
 bedrock deploy --wallet sEd7...         # Use specific wallet
 bedrock deploy --skip-build             # Skip rebuild
 ```
@@ -133,7 +133,7 @@ bedrock call <contract> <function> [flags]
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--wallet` | `-w` | Wallet seed or jade name (required) | - |
-| `--network` | `-n` | Target network | `alphanet` |
+| `--network` | `-n` | Target network | `local` |
 | `--params` | `-p` | JSON string of function parameters | - |
 | `--params-file` | `-f` | Path to JSON file with parameters | - |
 | `--gas` | `-g` | Computation allowance | `1000000` |
@@ -308,10 +308,12 @@ The node uses the `lejamon/rippled_smart_contract_vault_x86` Docker image for al
 **Requirements:** Docker must be installed and running.
 
 ```bash
-bedrock node start     # Start local node
-bedrock node status    # Check status
-bedrock node logs      # View logs
-bedrock node stop      # Stop node
+bedrock node start             # Start local node
+bedrock node status            # Check status
+bedrock node logs              # Print recent logs and exit
+bedrock node logs --follow     # Stream logs (like `docker logs -f`)
+bedrock node logs --tail 100   # Show only the last N lines
+bedrock node stop              # Stop node
 ```
 
 ## jade
