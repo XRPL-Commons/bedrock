@@ -77,7 +77,8 @@ func runClawback(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to resolve wallet: %w", err)
 	}
 
-	d, err := deployer.NewDeployer(false)
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	d, err := deployer.NewDeployer(verbose)
 	if err != nil {
 		return fmt.Errorf("failed to initialize deployer: %w", err)
 	}

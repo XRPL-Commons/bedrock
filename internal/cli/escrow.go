@@ -155,7 +155,7 @@ func runEscrowDeploy(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose, _ := cmd.Flags().GetBool("verbose")
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err
@@ -212,7 +212,7 @@ func runEscrowFinish(cmd *cobra.Command, args []string) error {
 
 	color.Cyan("Finishing escrow %s seq %d...\n", owner, seq)
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose, _ := cmd.Flags().GetBool("verbose")
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err
@@ -282,7 +282,7 @@ func runEscrowCancel(cmd *cobra.Command, args []string) error {
 
 	color.Cyan("Cancelling escrow %s seq %d...\n", owner, seq)
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose, _ := cmd.Flags().GetBool("verbose")
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err
@@ -325,7 +325,7 @@ func runEscrowStatus(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unknown network %q", escrowNetwork)
 	}
 
-	isVerbose := false // TODO: get from global flag
+	isVerbose, _ := cmd.Flags().GetBool("verbose")
 	op, err := escrow.NewOperator(isVerbose)
 	if err != nil {
 		return err

@@ -15,6 +15,8 @@ const fs = require('fs');
 async function contractUserDelete(config) {
   const {
     contract_account,
+    function_name,
+    computation_allowance,
     network_url,
     wallet_seed,
     algorithm,
@@ -38,11 +40,19 @@ async function contractUserDelete(config) {
       ? xrpl.Wallet.fromSeed(wallet_seed, { algorithm: algo })
       : xrpl.Wallet.fromSeed(wallet_seed);
 
+    // ContractUserDelete invokes a contract function (like ContractCall),
+    // so FunctionName is required and must be hex-encoded.
+    const functionNameHex = Buffer.from(function_name).toString('hex').toUpperCase();
+
     const tx = {
       TransactionType: 'ContractUserDelete',
       Account: wallet.address,
       ContractAccount: contract_account,
-      Fee: fee || '1000000',
+      FunctionName: functionNameHex,
+      ComputationAllowance: parseInt(computation_allowance || '1000000'),
+      // Fee must cover the gas (see escrow_finish.js) or the ledger rejects
+      // with telINSUF_FEE_P.
+      Fee: fee || String(parseInt(computation_allowance || '1000000') + 100000),
     };
 
     const prepared = await client.autofill(tx);

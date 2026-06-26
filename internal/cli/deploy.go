@@ -211,7 +211,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	// Create deployer
-	verbose := false // TODO: get from global flag
+	verbose, _ := cmd.Flags().GetBool("verbose")
 	d, err := deployer.NewDeployer(verbose)
 	if err != nil {
 		color.Red("✗ Failed to initialize deployer: %v\n", err)

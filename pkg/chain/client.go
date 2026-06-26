@@ -37,7 +37,7 @@ type RPCError struct {
 
 // NewClient creates a new XRPL RPC client from a WebSocket or HTTP URL
 func NewClient(url string) *Client {
-	httpURL := toHTTPURL(url)
+	httpURL := ToHTTPURL(url)
 	return &Client{
 		httpURL: httpURL,
 		httpClient: &http.Client{
@@ -121,8 +121,10 @@ func (c *Client) CallTyped(ctx context.Context, target interface{}, method strin
 	return nil
 }
 
-// toHTTPURL converts a WebSocket URL to an HTTP URL for JSON-RPC
-func toHTTPURL(rawURL string) string {
+// ToHTTPURL converts a WebSocket URL to an HTTP URL for JSON-RPC.
+// For the local standalone node it also remaps the WS port (6006) to the
+// JSON-RPC port (5005); posting plain HTTP to 6006 returns 403 Forbidden.
+func ToHTTPURL(rawURL string) string {
 	if strings.HasPrefix(rawURL, "ws://") {
 		rawURL = strings.Replace(rawURL, "ws://", "http://", 1)
 		// Local dev: WS port 6006 maps to JSON-RPC port 5005

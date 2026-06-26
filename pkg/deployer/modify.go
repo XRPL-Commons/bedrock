@@ -48,11 +48,13 @@ type DeleteResult struct {
 
 // UserDeleteConfig holds configuration for deleting user data from a contract
 type UserDeleteConfig struct {
-	ContractAccount string
-	NetworkURL      string
-	WalletSeed      string
-	Algorithm       string
-	Fee             string
+	ContractAccount      string
+	FunctionName         string
+	ComputationAllowance string
+	NetworkURL           string
+	WalletSeed           string
+	Algorithm            string
+	Fee                  string
 }
 
 // ClawbackConfig holds configuration for clawing back tokens from a contract
@@ -173,12 +175,14 @@ func (d *Deployer) Clawback(ctx context.Context, config ClawbackConfig) (*Clawba
 // UserDelete removes user's data from a contract and recovers reserves
 func (d *Deployer) UserDelete(ctx context.Context, config UserDeleteConfig) (*DeleteResult, error) {
 	jsConfig := map[string]interface{}{
-		"contract_account": config.ContractAccount,
-		"network_url":      config.NetworkURL,
-		"wallet_seed":      config.WalletSeed,
-		"algorithm":        config.Algorithm,
-		"fee":              config.Fee,
-		"verbose":          d.verbose,
+		"contract_account":      config.ContractAccount,
+		"function_name":         config.FunctionName,
+		"computation_allowance": config.ComputationAllowance,
+		"network_url":           config.NetworkURL,
+		"wallet_seed":           config.WalletSeed,
+		"algorithm":             config.Algorithm,
+		"fee":                   config.Fee,
+		"verbose":               d.verbose,
 	}
 
 	result, err := d.executor.ExecuteModule(ctx, "user_delete.js", jsConfig)
@@ -193,4 +197,3 @@ func (d *Deployer) UserDelete(ctx context.Context, config UserDeleteConfig) (*De
 
 	return &deleteResult, nil
 }
-

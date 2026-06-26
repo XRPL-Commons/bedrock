@@ -126,7 +126,9 @@ async function finishEscrow(config) {
       Owner: owner,
       OfferSequence: escrow_sequence,
       ComputationAllowance: parseInt(computation_allowance || '1000000'),
-      Fee: fee || '1000000',
+      // Smart-escrow finish must cover the ComputationAllowance (gas) plus a
+      // base buffer, otherwise the ledger rejects with telINSUF_FEE_P.
+      Fee: fee || String(parseInt(computation_allowance || '1000000') + 100000),
       Sequence: accountInfo.result.account_data.Sequence,
       SigningPubKey: wallet.publicKey,
     };
