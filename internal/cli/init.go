@@ -42,9 +42,6 @@ var genesisTemplate string
 //go:embed templates/xrpld.cfg
 var xrpldCfgTemplate string
 
-//go:embed templates/validators.txt
-var validatorsTemplate string
-
 func init() {
 	rootCmd.AddCommand(initCmd)
 

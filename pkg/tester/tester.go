@@ -32,7 +32,7 @@ func (t *Tester) RunUnit(ctx context.Context, opts TestOptions) (*TestResult, er
 	contractDir := filepath.Join(t.projectRoot, "contract")
 
 	if _, err := os.Stat(filepath.Join(contractDir, "Cargo.toml")); os.IsNotExist(err) {
-		return nil, fmt.Errorf("Cargo.toml not found in %s", contractDir)
+		return nil, fmt.Errorf("no Cargo.toml found in %s", contractDir)
 	}
 
 	args := []string{"test"}

@@ -60,12 +60,12 @@ func formatGasTable(entries []GasEntry) string {
 	// Header
 	separator := fmt.Sprintf("+-%s-+-%s-+", strings.Repeat("-", maxNameLen), strings.Repeat("-", maxGasLen))
 	sb.WriteString(separator + "\n")
-	sb.WriteString(fmt.Sprintf("| %-*s | %-*s |\n", maxNameLen, "Function", maxGasLen, "Gas Used"))
+	fmt.Fprintf(&sb, "| %-*s | %-*s |\n", maxNameLen, "Function", maxGasLen, "Gas Used")
 	sb.WriteString(separator + "\n")
 
 	// Rows
 	for _, e := range entries {
-		sb.WriteString(fmt.Sprintf("| %-*s | %*d |\n", maxNameLen, e.Function, maxGasLen, e.GasUsed))
+		fmt.Fprintf(&sb, "| %-*s | %*d |\n", maxNameLen, e.Function, maxGasLen, e.GasUsed)
 	}
 
 	sb.WriteString(separator + "\n")
@@ -76,7 +76,7 @@ func formatGasTable(entries []GasEntry) string {
 		total += e.GasUsed
 	}
 	avg := total / int64(len(entries))
-	sb.WriteString(fmt.Sprintf("Total: %d | Average: %d | Functions: %d\n", total, avg, len(entries)))
+	fmt.Fprintf(&sb, "Total: %d | Average: %d | Functions: %d\n", total, avg, len(entries))
 
 	return sb.String()
 }
