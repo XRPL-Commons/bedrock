@@ -162,7 +162,8 @@ func runVaultDeploy(cmd *cobra.Command, args []string) error {
 	fmt.Printf("  Network: %s (%s)\n", vaultNetwork, netCfg.URL)
 	fmt.Println()
 
-	op, err := vault.NewOperator(false)
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	op, err := vault.NewOperator(verbose)
 	if err != nil {
 		return err
 	}
@@ -212,7 +213,8 @@ func runVaultDeposit(cmd *cobra.Command, args []string) error {
 
 	color.Cyan("Depositing %s drops into vault %s...\n", vaultAmount, vaultID)
 
-	op, err := vault.NewOperator(false)
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	op, err := vault.NewOperator(verbose)
 	if err != nil {
 		return err
 	}
@@ -258,7 +260,8 @@ func runVaultWithdraw(cmd *cobra.Command, args []string) error {
 
 	color.Cyan("Withdrawing %s drops from vault %s...\n", vaultAmount, vaultID)
 
-	op, err := vault.NewOperator(false)
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	op, err := vault.NewOperator(verbose)
 	if err != nil {
 		return err
 	}
@@ -298,7 +301,8 @@ func runVaultStatus(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unknown network %q", vaultNetwork)
 	}
 
-	op, err := vault.NewOperator(false)
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	op, err := vault.NewOperator(verbose)
 	if err != nil {
 		return err
 	}

@@ -16,6 +16,7 @@ import (
 	"github.com/Peersyst/xrpl-go/xrpl/transaction"
 	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
 	"github.com/Peersyst/xrpl-go/xrpl/wallet"
+	"github.com/xrpl-commons/bedrock/pkg/chain"
 )
 
 // Operations handles XRPL network operations using pure Go
@@ -113,13 +114,8 @@ type ServerInfoResult struct {
 
 // createRPCClient creates an RPC client for the given network URL
 func createRPCClient(networkURL string) (*rpc.Client, error) {
-	// Convert WebSocket URL to HTTP URL for RPC
-	rpcURL := networkURL
-	if strings.HasPrefix(networkURL, "ws://") {
-		rpcURL = strings.Replace(networkURL, "ws://", "http://", 1)
-	} else if strings.HasPrefix(networkURL, "wss://") {
-		rpcURL = strings.Replace(networkURL, "wss://", "https://", 1)
-	}
+	// Convert WebSocket URL to HTTP URL for RPC (incl. local 6006->5005 remap)
+	rpcURL := chain.ToHTTPURL(networkURL)
 
 	cfg, err := rpc.NewClientConfig(rpcURL)
 	if err != nil {
@@ -312,12 +308,7 @@ func (o *Operations) GetTransaction(networkURL string, hash string) (*TxResult, 
 	}
 
 	// Use raw HTTP JSON-RPC to avoid xrpl-go parser limitations
-	rpcURL := networkURL
-	if strings.HasPrefix(networkURL, "ws://") {
-		rpcURL = strings.Replace(networkURL, "ws://", "http://", 1)
-	} else if strings.HasPrefix(networkURL, "wss://") {
-		rpcURL = strings.Replace(networkURL, "wss://", "https://", 1)
-	}
+	rpcURL := chain.ToHTTPURL(networkURL)
 
 	reqBody := map[string]interface{}{
 		"method": "tx",

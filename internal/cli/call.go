@@ -75,7 +75,7 @@ func runCall(cmd *cobra.Command, args []string) error {
 		if callNetwork == "local" {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
-				NetworkID: 0, // Local network uses network ID 0
+				NetworkID: 100, // Local standalone node uses network ID 100
 			}
 		} else {
 			return fmt.Errorf("network '%s' not found in config", callNetwork)
@@ -123,7 +123,7 @@ func runCall(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 
 	// Create caller
-	verbose := false // TODO: get from global flag
+	verbose, _ := cmd.Flags().GetBool("verbose")
 	c, err := caller.NewCaller(verbose)
 	if err != nil {
 		color.Red("✗ Failed to initialize caller: %v\n", err)

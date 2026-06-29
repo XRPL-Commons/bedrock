@@ -15,6 +15,8 @@ var (
 	userDeleteWallet    string
 	userDeleteAlgorithm string
 	userDeleteFee       string
+	userDeleteFunction  string
+	userDeleteGas       string
 )
 
 var userDeleteCmd = &cobra.Command{
@@ -25,8 +27,8 @@ var userDeleteCmd = &cobra.Command{
 This recovers the reserves held for your contract data.
 
 Examples:
-  bedrock user-delete rContract123... --wallet sXXX...
-  bedrock user-delete rContract123... --wallet sXXX... --network local`,
+  bedrock user-delete rContract123... --wallet sXXX... --function cleanup
+  bedrock user-delete rContract123... --wallet sXXX... --function cleanup --network local`,
 	Args: cobra.ExactArgs(1),
 	RunE: runUserDelete,
 }
@@ -37,13 +39,19 @@ func init() {
 	userDeleteCmd.Flags().StringVarP(&userDeleteNetwork, "network", "n", "alphanet", "Network")
 	userDeleteCmd.Flags().StringVarP(&userDeleteWallet, "wallet", "w", "", "Wallet seed or name (required)")
 	userDeleteCmd.Flags().StringVar(&userDeleteAlgorithm, "algorithm", "secp256k1", "Cryptographic algorithm")
-	userDeleteCmd.Flags().StringVar(&userDeleteFee, "fee", "1000000", "Transaction fee in drops")
+	userDeleteCmd.Flags().StringVar(&userDeleteFee, "fee", "", "Transaction fee in drops (default: gas + 0.1 XRP)")
+	userDeleteCmd.Flags().StringVarP(&userDeleteFunction, "function", "f", "", "Contract function that handles user deletion (required)")
+	userDeleteCmd.Flags().StringVarP(&userDeleteGas, "gas", "g", "1000000", "Computation allowance")
 
 	userDeleteCmd.MarkFlagRequired("wallet")
 }
 
 func runUserDelete(cmd *cobra.Command, args []string) error {
 	contractAccount := args[0]
+
+	if userDeleteFunction == "" {
+		return fmt.Errorf("--function is required: name the contract function that handles user deletion")
+	}
 
 	cfg, err := config.LoadFromWorkingDir()
 	if err != nil {
@@ -73,18 +81,21 @@ func runUserDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to resolve wallet: %w", err)
 	}
 
-	d, err := deployer.NewDeployer(false)
+	verbose, _ := cmd.Flags().GetBool("verbose")
+	d, err := deployer.NewDeployer(verbose)
 	if err != nil {
 		return fmt.Errorf("failed to initialize deployer: %w", err)
 	}
 
 	ctx := cmd.Context()
 	result, err := d.UserDelete(ctx, deployer.UserDeleteConfig{
-		ContractAccount: contractAccount,
-		NetworkURL:      networkCfg.URL,
-		WalletSeed:      walletSeed,
-		Algorithm:       userDeleteAlgorithm,
-		Fee:             userDeleteFee,
+		ContractAccount:      contractAccount,
+		FunctionName:         userDeleteFunction,
+		ComputationAllowance: userDeleteGas,
+		NetworkURL:           networkCfg.URL,
+		WalletSeed:           walletSeed,
+		Algorithm:            userDeleteAlgorithm,
+		Fee:                  userDeleteFee,
 	})
 
 	if err != nil {

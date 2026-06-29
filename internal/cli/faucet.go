@@ -55,7 +55,7 @@ func runFaucet(cmd *cobra.Command, args []string) error {
 		if isLocal {
 			networkCfg = config.NetworkConfig{
 				URL:       "ws://localhost:6006",
-				NetworkID: 0, // Local network uses network ID 0
+				NetworkID: 100, // Local standalone node uses network ID 100
 			}
 		} else {
 			return fmt.Errorf("network '%s' not found in config", faucetNetwork)
