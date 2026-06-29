@@ -140,7 +140,7 @@ func (p *Parser) parseFunction(scanner *bufio.Scanner, lineNum *int, functionNam
 
 		// Check for @flag annotation
 		if match := flagPattern.FindStringSubmatch(line); match != nil {
-			fmt.Sscanf(match[1], "%d", &currentFlag)
+			_, _ = fmt.Sscanf(match[1], "%d", &currentFlag)
 			continue
 		}
 
@@ -181,8 +181,8 @@ func (p *Parser) parseFunction(scanner *bufio.Scanner, lineNum *int, functionNam
 
 		// If it's not a comment and not a function declaration, skip
 		if !strings.HasPrefix(strings.TrimSpace(line), "///") &&
-		   !strings.HasPrefix(strings.TrimSpace(line), "//") &&
-		   strings.TrimSpace(line) != "" {
+			!strings.HasPrefix(strings.TrimSpace(line), "//") &&
+			strings.TrimSpace(line) != "" {
 			break
 		}
 	}

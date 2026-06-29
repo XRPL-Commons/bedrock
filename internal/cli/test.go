@@ -236,7 +236,7 @@ func runTestWatch(cmd *cobra.Command, opts tester.TestOptions) error {
 	fmt.Println()
 
 	// Run tests once before watching
-	runUnitTests(cmd, opts)
+	_ = runUnitTests(cmd, opts)
 
 	w := watcher.New([]string{sourceDir}, []string{".rs"})
 	ctx := cmd.Context()
@@ -245,6 +245,6 @@ func runTestWatch(cmd *cobra.Command, opts tester.TestOptions) error {
 		fmt.Println()
 		color.Cyan("File changed, re-running tests...\n")
 		fmt.Println()
-		runUnitTests(cmd, opts)
+		_ = runUnitTests(cmd, opts)
 	})
 }

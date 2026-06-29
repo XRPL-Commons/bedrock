@@ -206,7 +206,7 @@ func startLedgerDaemon(intervalMs int) error {
 	pidFile := filepath.Join(".bedrock", "ledger-daemon.pid")
 	if err := os.WriteFile(pidFile, []byte(strconv.Itoa(cmd.Process.Pid)), 0600); err != nil {
 		// Kill the process if we can't write PID file
-		cmd.Process.Kill()
+		_ = cmd.Process.Kill()
 		logFile.Close()
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}

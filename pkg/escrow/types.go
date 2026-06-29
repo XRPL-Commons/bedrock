@@ -38,9 +38,9 @@ type FinishConfig struct {
 
 // FinishResult contains finish results
 type FinishResult struct {
-	TxHash     string `json:"txHash"`
+	TxHash     string      `json:"txHash"`
 	ReturnCode interface{} `json:"returnCode"`
-	Validated  bool   `json:"validated"`
+	Validated  bool        `json:"validated"`
 }
 
 // CancelConfig configures an escrow cancel operation

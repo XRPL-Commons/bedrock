@@ -13,16 +13,16 @@ import (
 
 // CoverageOptions configures coverage collection
 type CoverageOptions struct {
-	LCOV    bool   // Generate LCOV format
-	HTML    bool   // Generate HTML report
-	Output  string // Output path
+	LCOV   bool   // Generate LCOV format
+	HTML   bool   // Generate HTML report
+	Output string // Output path
 }
 
 // CoverageResult contains coverage data
 type CoverageResult struct {
-	Summary  string        // Human-readable summary
-	LCOVPath string        // Path to LCOV file if generated
-	HTMLPath string        // Path to HTML report if generated
+	Summary  string // Human-readable summary
+	LCOVPath string // Path to LCOV file if generated
+	HTMLPath string // Path to HTML report if generated
 	Duration time.Duration
 }
 

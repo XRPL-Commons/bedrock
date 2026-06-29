@@ -128,7 +128,7 @@ func accountObjects(ctx context.Context, client *chain.Client, address string) e
 	fmt.Printf("  Found %d objects:\n\n", len(objects.Objects))
 	for i, obj := range objects.Objects {
 		var parsed map[string]interface{}
-		json.Unmarshal(obj, &parsed)
+		_ = json.Unmarshal(obj, &parsed)
 
 		entryType, _ := parsed["LedgerEntryType"].(string)
 		fmt.Printf("  [%d] %s\n", i+1, entryType)
@@ -163,4 +163,3 @@ func accountLines(ctx context.Context, client *chain.Client, address string) err
 
 	return nil
 }
-

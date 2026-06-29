@@ -39,7 +39,7 @@ func init() {
 	deleteCmd.Flags().StringVar(&deleteAlgorithm, "algorithm", "secp256k1", "Cryptographic algorithm")
 	deleteCmd.Flags().StringVar(&deleteFee, "fee", "1000000", "Transaction fee in drops")
 
-	deleteCmd.MarkFlagRequired("wallet")
+	_ = deleteCmd.MarkFlagRequired("wallet")
 }
 
 func runDelete(cmd *cobra.Command, args []string) error {

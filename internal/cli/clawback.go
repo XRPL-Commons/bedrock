@@ -41,8 +41,8 @@ func init() {
 	clawbackCmd.Flags().StringVar(&clawbackAlgorithm, "algorithm", "secp256k1", "Cryptographic algorithm")
 	clawbackCmd.Flags().StringVar(&clawbackFee, "fee", "1000000", "Transaction fee in drops")
 
-	clawbackCmd.MarkFlagRequired("wallet")
-	clawbackCmd.MarkFlagRequired("amount")
+	_ = clawbackCmd.MarkFlagRequired("wallet")
+	_ = clawbackCmd.MarkFlagRequired("amount")
 }
 
 func runClawback(cmd *cobra.Command, args []string) error {

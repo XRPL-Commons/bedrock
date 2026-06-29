@@ -48,7 +48,7 @@ func init() {
 	callCmd.Flags().StringVar(&callFee, "fee", "1000000", "Transaction fee in drops")
 	callCmd.Flags().StringVar(&callAlgorithm, "algorithm", "secp256k1", "Cryptographic algorithm (secp256k1, ed25519)")
 
-	callCmd.MarkFlagRequired("wallet")
+	_ = callCmd.MarkFlagRequired("wallet")
 }
 
 func runCall(cmd *cobra.Command, args []string) error {
@@ -184,6 +184,6 @@ func runCall(cmd *cobra.Command, args []string) error {
 // hexToInt converts hex string to int (best effort)
 func hexToInt(hex string) int64 {
 	var val int64
-	fmt.Sscanf(hex, "%x", &val)
+	_, _ = fmt.Sscanf(hex, "%x", &val)
 	return val
 }

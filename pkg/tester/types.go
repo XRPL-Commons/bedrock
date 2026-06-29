@@ -77,8 +77,8 @@ type Snapshot struct {
 
 // SnapshotDiff represents differences between two snapshots
 type SnapshotDiff struct {
-	Added   map[string]int64 // New entries
-	Removed map[string]int64 // Removed entries
+	Added   map[string]int64    // New entries
+	Removed map[string]int64    // Removed entries
 	Changed map[string][2]int64 // Changed entries [old, new]
 }
 
@@ -92,9 +92,9 @@ type IntegrationTestSuite struct {
 
 // IntegrationSetup defines pre-test setup steps
 type IntegrationSetup struct {
-	Deploy     bool              // Deploy contract before tests
-	Fund       bool              // Fund wallet from faucet
-	WalletSeed string            // Wallet seed to use
+	Deploy     bool                   // Deploy contract before tests
+	Fund       bool                   // Fund wallet from faucet
+	WalletSeed string                 // Wallet seed to use
 	Params     map[string]interface{} // Deploy parameters
 }
 
@@ -108,9 +108,9 @@ type IntegrationTest struct {
 
 // Assertion defines an expected condition to verify
 type Assertion struct {
-	Type     AssertionType          // Type of assertion
-	Expected interface{}            // Expected value
-	Field    string                 // Field to check (for nested assertions)
+	Type     AssertionType // Type of assertion
+	Expected interface{}   // Expected value
+	Field    string        // Field to check (for nested assertions)
 }
 
 // AssertionType defines what kind of assertion to perform

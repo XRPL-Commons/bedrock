@@ -16,13 +16,13 @@ type AccountInfo struct {
 
 // AccountData contains the account's ledger data
 type AccountData struct {
-	Account       string          `json:"Account"`
-	Balance       string          `json:"Balance"`
-	Flags         int64           `json:"Flags"`
-	LedgerIndex   string          `json:"index"`
-	OwnerCount    int             `json:"OwnerCount"`
-	Sequence      int             `json:"Sequence"`
-	PreviousTxnID string          `json:"PreviousTxnID"`
+	Account       string `json:"Account"`
+	Balance       string `json:"Balance"`
+	Flags         int64  `json:"Flags"`
+	LedgerIndex   string `json:"index"`
+	OwnerCount    int    `json:"OwnerCount"`
+	Sequence      int    `json:"Sequence"`
+	PreviousTxnID string `json:"PreviousTxnID"`
 }
 
 // AccountObjects represents the result of account_objects RPC
@@ -35,19 +35,19 @@ type AccountObjects struct {
 
 // AccountLines represents the result of account_lines RPC
 type AccountLines struct {
-	Account string        `json:"account"`
-	Lines   []TrustLine   `json:"lines"`
-	Status  string        `json:"status"`
+	Account string      `json:"account"`
+	Lines   []TrustLine `json:"lines"`
+	Status  string      `json:"status"`
 }
 
 // TrustLine represents an XRPL trust line
 type TrustLine struct {
-	Account    string `json:"account"`
-	Balance    string `json:"balance"`
-	Currency   string `json:"currency"`
-	Limit      string `json:"limit"`
-	LimitPeer  string `json:"limit_peer"`
-	NoRipple   bool   `json:"no_ripple"`
+	Account   string `json:"account"`
+	Balance   string `json:"balance"`
+	Currency  string `json:"currency"`
+	Limit     string `json:"limit"`
+	LimitPeer string `json:"limit_peer"`
+	NoRipple  bool   `json:"no_ripple"`
 }
 
 // GetAccountInfo retrieves account info from the ledger
@@ -107,7 +107,7 @@ func (c *Client) GetAccountLines(ctx context.Context, address string) (*AccountL
 // DropsToXRP converts drops (smallest XRP unit) to XRP
 func DropsToXRP(drops string) string {
 	var d int64
-	fmt.Sscanf(drops, "%d", &d)
+	_, _ = fmt.Sscanf(drops, "%d", &d)
 	xrp := float64(d) / 1_000_000
 	return fmt.Sprintf("%.6f", xrp)
 }

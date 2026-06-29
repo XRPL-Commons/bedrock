@@ -12,17 +12,17 @@ import (
 
 // FixtureFile represents a test fixture file (TOML or JSON)
 type FixtureFile struct {
-	Name    string                    `toml:"name" json:"name"`
-	Network string                    `toml:"network" json:"network"`
-	Setup   FixtureSetup              `toml:"setup" json:"setup"`
-	Tests   []FixtureTest             `toml:"tests" json:"tests"`
+	Name    string        `toml:"name" json:"name"`
+	Network string        `toml:"network" json:"network"`
+	Setup   FixtureSetup  `toml:"setup" json:"setup"`
+	Tests   []FixtureTest `toml:"tests" json:"tests"`
 }
 
 // FixtureSetup defines setup steps before running tests
 type FixtureSetup struct {
-	Deploy     bool              `toml:"deploy" json:"deploy"`
-	Fund       bool              `toml:"fund" json:"fund"`
-	WalletSeed string            `toml:"wallet_seed" json:"wallet_seed"`
+	Deploy     bool                   `toml:"deploy" json:"deploy"`
+	Fund       bool                   `toml:"fund" json:"fund"`
+	WalletSeed string                 `toml:"wallet_seed" json:"wallet_seed"`
 	Params     map[string]interface{} `toml:"params" json:"params"`
 }
 
@@ -36,10 +36,10 @@ type FixtureTest struct {
 
 // FixtureExpect defines expected outcomes for a test
 type FixtureExpect struct {
-	ReturnCode  *int    `toml:"return_code" json:"return_code,omitempty"`
-	ReturnValue *string `toml:"return_value" json:"return_value,omitempty"`
-	TxResult    *string `toml:"tx_result" json:"tx_result,omitempty"`
-	GasBelow    *int64  `toml:"gas_below" json:"gas_below,omitempty"`
+	ReturnCode  *int                     `toml:"return_code" json:"return_code,omitempty"`
+	ReturnValue *string                  `toml:"return_value" json:"return_value,omitempty"`
+	TxResult    *string                  `toml:"tx_result" json:"tx_result,omitempty"`
+	GasBelow    *int64                   `toml:"gas_below" json:"gas_below,omitempty"`
 	Events      []map[string]interface{} `toml:"events" json:"events,omitempty"`
 }
 

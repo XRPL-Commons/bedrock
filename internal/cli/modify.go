@@ -56,7 +56,7 @@ func init() {
 	modifyCmd.Flags().BoolVar(&modifyABIImmutable, "abi-immutable", false, "Set lsfABIImmutable flag")
 	modifyCmd.Flags().BoolVar(&modifyUndeletable, "undeletable", false, "Set lsfUndeletable flag")
 
-	modifyCmd.MarkFlagRequired("wallet")
+	_ = modifyCmd.MarkFlagRequired("wallet")
 }
 
 func runModify(cmd *cobra.Command, args []string) error {

@@ -106,9 +106,9 @@ func (t *Tester) parseTestOutput(output string) *TestResult {
 
 		// Parse summary line
 		if matches := summaryPattern.FindStringSubmatch(line); matches != nil {
-			fmt.Sscanf(matches[2], "%d", &result.Passed)
-			fmt.Sscanf(matches[3], "%d", &result.Failed)
-			fmt.Sscanf(matches[4], "%d", &result.Ignored)
+			_, _ = fmt.Sscanf(matches[2], "%d", &result.Passed)
+			_, _ = fmt.Sscanf(matches[3], "%d", &result.Failed)
+			_, _ = fmt.Sscanf(matches[4], "%d", &result.Ignored)
 		}
 	}
 

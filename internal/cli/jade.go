@@ -265,7 +265,7 @@ This action cannot be undone. Make sure you have backed up the seed if needed.`,
 		// Confirm removal
 		fmt.Printf("Are you sure you want to remove wallet '%s'? (y/N): ", walletName)
 		var response string
-		fmt.Scanln(&response)
+		_, _ = fmt.Scanln(&response)
 
 		if response != "y" && response != "Y" {
 			fmt.Println("Operation cancelled")
@@ -692,7 +692,7 @@ func init() {
 
 	// Add wallet and algorithm flags to send command
 	jadeSendCmd.Flags().StringP("wallet", "w", "", "Wallet name (required)")
-	jadeSendCmd.MarkFlagRequired("wallet")
+	_ = jadeSendCmd.MarkFlagRequired("wallet")
 	jadeSendCmd.Flags().StringP("algorithm", "a", "secp256k1", "Cryptographic algorithm (secp256k1, ed25519)")
 
 	// Add jade to root command

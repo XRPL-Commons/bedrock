@@ -50,5 +50,8 @@ jobs:
           cache: true
       - uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.62.0
+          # v1.62.0 is built with go1.23 and refuses to lint a go1.24 module
+          # ("language version go1.23 is lower than the targeted go1.24.4");
+          # v1.64.8 is the last v1 release and is built with go1.24.
+          version: v1.64.8
           args: --timeout=5m

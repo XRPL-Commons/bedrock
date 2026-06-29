@@ -8,14 +8,14 @@ import (
 
 // ContractInfo represents contract details from the ledger
 type ContractInfo struct {
-	Account        string                 `json:"Account"`
-	Owner          string                 `json:"Owner"`
-	LedgerEntryType string               `json:"LedgerEntryType"`
-	Flags          int64                  `json:"Flags"`
-	ContractData   json.RawMessage        `json:"ContractData"`
-	ABI            json.RawMessage        `json:"ABI"`
-	WasmHash       string                 `json:"WasmHash"`
-	Extra          map[string]interface{} `json:"-"`
+	Account         string                 `json:"Account"`
+	Owner           string                 `json:"Owner"`
+	LedgerEntryType string                 `json:"LedgerEntryType"`
+	Flags           int64                  `json:"Flags"`
+	ContractData    json.RawMessage        `json:"ContractData"`
+	ABI             json.RawMessage        `json:"ABI"`
+	WasmHash        string                 `json:"WasmHash"`
+	Extra           map[string]interface{} `json:"-"`
 }
 
 // GetContractInfo retrieves contract information from the ledger
@@ -47,7 +47,7 @@ func (c *Client) GetContractInfo(ctx context.Context, account string) (*Contract
 	}
 
 	// Capture all fields
-	json.Unmarshal(result.AccountObjects[0], &info.Extra)
+	_ = json.Unmarshal(result.AccountObjects[0], &info.Extra)
 
 	return &info, nil
 }
@@ -75,7 +75,7 @@ func (c *Client) getContractByLedgerEntry(ctx context.Context, account string) (
 		return nil, fmt.Errorf("failed to parse contract node: %w", err)
 	}
 
-	json.Unmarshal(wrapper.Node, &info.Extra)
+	_ = json.Unmarshal(wrapper.Node, &info.Extra)
 	return &info, nil
 }
 

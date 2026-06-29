@@ -16,9 +16,8 @@ import (
 var ModulesFS embed.FS
 
 var (
-	setupMu    sync.Mutex
-	setupDone  map[string]string // group -> cacheDir
-	setupError error
+	setupMu   sync.Mutex
+	setupDone map[string]string // group -> cacheDir
 )
 
 const (

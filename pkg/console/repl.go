@@ -280,7 +280,7 @@ func (r *REPL) handleRPC(ctx context.Context, args []string) {
 	}
 
 	var parsed interface{}
-	json.Unmarshal(result, &parsed)
+	_ = json.Unmarshal(result, &parsed)
 	pretty, _ := json.MarshalIndent(parsed, "  ", "  ")
 	fmt.Printf("  %s\n", string(pretty))
 }

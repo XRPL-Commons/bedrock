@@ -369,13 +369,13 @@ func (o *Operations) GetTransaction(networkURL string, hash string) (*TxResult, 
 	txType := getString(res, "TransactionType")
 
 	txResult := &TxResult{
-		Hash:      getString(res, "hash"),
-		Type:      txType,
-		Account:   getString(res, "Account"),
-		Fee:       getString(res, "Fee"),
-		Sequence:  getInt(res, "Sequence"),
+		Hash:        getString(res, "hash"),
+		Type:        txType,
+		Account:     getString(res, "Account"),
+		Fee:         getString(res, "Fee"),
+		Sequence:    getInt(res, "Sequence"),
 		LedgerIndex: getInt(res, "ledger_index"),
-		Date:      getInt(res, "date"),
+		Date:        getInt(res, "date"),
 	}
 
 	if v, ok := res["validated"].(bool); ok {

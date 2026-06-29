@@ -193,4 +193,3 @@ func (d *Deployer) UserDelete(ctx context.Context, config UserDeleteConfig) (*De
 
 	return &deleteResult, nil
 }
-

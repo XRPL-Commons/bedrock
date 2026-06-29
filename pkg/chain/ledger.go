@@ -16,14 +16,14 @@ type LedgerInfo struct {
 
 // LedgerData contains ledger details
 type LedgerData struct {
-	LedgerIndex  string `json:"ledger_index"`
-	LedgerHash   string `json:"ledger_hash"`
-	CloseTime    int64  `json:"close_time"`
-	ParentHash   string `json:"parent_hash"`
-	TotalCoins   string `json:"total_coins"`
-	TxCount      int    `json:"transaction_count"`
-	AccountHash  string `json:"account_hash"`
-	TxHash       string `json:"transaction_hash"`
+	LedgerIndex string `json:"ledger_index"`
+	LedgerHash  string `json:"ledger_hash"`
+	CloseTime   int64  `json:"close_time"`
+	ParentHash  string `json:"parent_hash"`
+	TotalCoins  string `json:"total_coins"`
+	TxCount     int    `json:"transaction_count"`
+	AccountHash string `json:"account_hash"`
+	TxHash      string `json:"transaction_hash"`
 }
 
 // TransactionInfo represents the result of tx RPC call

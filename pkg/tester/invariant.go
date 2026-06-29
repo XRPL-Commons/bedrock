@@ -12,19 +12,19 @@ import (
 
 // Invariant defines a property that must hold after every contract call
 type Invariant struct {
-	Name        string                 `toml:"name" json:"name"`
-	Function    string                 `toml:"function" json:"function"`
-	Assertions  []Assertion            `toml:"assertions" json:"assertions"`
-	Description string                 `toml:"description" json:"description"`
+	Name        string      `toml:"name" json:"name"`
+	Function    string      `toml:"function" json:"function"`
+	Assertions  []Assertion `toml:"assertions" json:"assertions"`
+	Description string      `toml:"description" json:"description"`
 }
 
 // InvariantResult contains results from invariant checking
 type InvariantResult struct {
-	Name        string
-	Iterations  int
-	Violations  int
-	Duration    time.Duration
-	Details     []string
+	Name       string
+	Iterations int
+	Violations int
+	Duration   time.Duration
+	Details    []string
 }
 
 // InvariantRunner runs property-based invariant tests

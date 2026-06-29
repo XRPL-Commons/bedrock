@@ -68,5 +68,5 @@ func (f *Formatter) PrintError(err error) {
 func (f *Formatter) printJSON(data interface{}) {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
-	enc.Encode(data)
+	_ = enc.Encode(data)
 }
