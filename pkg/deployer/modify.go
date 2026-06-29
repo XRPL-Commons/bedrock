@@ -181,8 +181,12 @@ func (d *Deployer) UserDelete(ctx context.Context, config UserDeleteConfig) (*De
 		"network_url":           config.NetworkURL,
 		"wallet_seed":           config.WalletSeed,
 		"algorithm":             config.Algorithm,
-		"fee":                   config.Fee,
 		"verbose":               d.verbose,
+	}
+	// Forward an explicit fee only when set; otherwise user_delete.js derives a
+	// gas-aware default (computation_allowance + 0.1 XRP) to avoid telINSUF_FEE_P.
+	if config.Fee != "" {
+		jsConfig["fee"] = config.Fee
 	}
 
 	result, err := d.executor.ExecuteModule(ctx, "user_delete.js", jsConfig)

@@ -39,7 +39,7 @@ func init() {
 	userDeleteCmd.Flags().StringVarP(&userDeleteNetwork, "network", "n", "alphanet", "Network")
 	userDeleteCmd.Flags().StringVarP(&userDeleteWallet, "wallet", "w", "", "Wallet seed or name (required)")
 	userDeleteCmd.Flags().StringVar(&userDeleteAlgorithm, "algorithm", "secp256k1", "Cryptographic algorithm")
-	userDeleteCmd.Flags().StringVar(&userDeleteFee, "fee", "1000000", "Transaction fee in drops")
+	userDeleteCmd.Flags().StringVar(&userDeleteFee, "fee", "", "Transaction fee in drops (default: gas + 0.1 XRP)")
 	userDeleteCmd.Flags().StringVarP(&userDeleteFunction, "function", "f", "", "Contract function that handles user deletion (required)")
 	userDeleteCmd.Flags().StringVarP(&userDeleteGas, "gas", "g", "1000000", "Computation allowance")
 
