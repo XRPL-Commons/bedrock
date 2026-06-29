@@ -257,10 +257,11 @@ bedrock init my-vault --primitives vault --template vault-whitelist
 Vault projects use this `bedrock.toml` structure:
 
 ```toml
+primitives = ["vault"]
+
 [project]
 name = "my-vault"
 version = "0.1.0"
-primitives = ["vault"]
 
 [vaults.main]
 source = "vault/src/lib.rs"

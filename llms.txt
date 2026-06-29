@@ -138,10 +138,11 @@ my-vault/
 
 ### Contract Project
 ```toml
+primitives = ["contract"]
+
 [project]
 name = "my-contract"
 version = "0.1.0"
-primitives = ["contract"]
 
 [build]
 source = "contract/src/lib.rs"
@@ -170,10 +171,11 @@ faucet_url = "https://alphanet.faucet.nerdnest.xyz/accounts"
 
 ### Escrow Project
 ```toml
+primitives = ["escrow"]
+
 [project]
 name = "my-escrow"
 version = "0.1.0"
-primitives = ["escrow"]
 
 [escrows.main]
 source = "escrow/src/lib.rs"
@@ -185,10 +187,11 @@ docker_image = "lejamon/rippled_smart_contract_vault_x86"
 
 ### Vault Project
 ```toml
+primitives = ["vault"]
+
 [project]
 name = "my-vault"
 version = "0.1.0"
-primitives = ["vault"]
 
 [vaults.main]
 source = "vault/src/lib.rs"
