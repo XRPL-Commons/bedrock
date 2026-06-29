@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -12,8 +13,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/docker/go-connections/nat"
-	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
 
 // dockerPlatform returns the Docker `linux/<arch>` platform string for the
@@ -30,7 +31,7 @@ func dockerPlatform() (osName, arch string) {
 }
 
 const (
-	ContainerName       = "bedrock-xrpl-node"
+	ContainerName           = "bedrock-xrpl-node"
 	DefaultNodeReadyTimeout = 30 * time.Second
 )
 
@@ -58,7 +59,8 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 		return fmt.Errorf("node is already running (container: %s)", existing.ID[:12])
 	}
 
-	// Pull the Docker image
+	// Pull the Docker image, preferring the host-native platform with an amd64
+	// fallback (see pullImage).
 	if err := m.pullImage(ctx, opts.DockerImage); err != nil {
 		return fmt.Errorf("failed to pull image: %w", err)
 	}
@@ -84,7 +86,13 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 		containerCfg.Entrypoint = opts.Entrypoint
 	}
 
-	platOS, platArch := dockerPlatform()
+	// The platform argument is left nil so Docker uses the image that pullImage
+	// actually obtained. We must not assert a platform here: the classic
+	// (non-containerd) image store ignores the --platform hint when pulling a
+	// single-arch image, so it may have fetched amd64 even though arm64 was
+	// requested — asserting arm64 would then fail container creation. A nil
+	// platform runs whatever was obtained (under emulation if needed), matching
+	// `docker run`'s default behaviour.
 	resp, err := m.docker.ContainerCreate(ctx,
 		containerCfg,
 		&container.HostConfig{
@@ -92,8 +100,8 @@ func (m *Manager) Start(ctx context.Context, opts StartOptions) error {
 			Binds:        opts.Binds,
 			AutoRemove:   false,
 		},
-		nil,
-		&ocispec.Platform{Architecture: platArch, OS: platOS},
+		nil, // networking config
+		nil, // platform (see note above)
 		ContainerName,
 	)
 	if err != nil {
@@ -183,11 +191,11 @@ func (m *Manager) StreamLogs(ctx context.Context, w io.Writer, follow bool, tail
 	}
 	defer reader.Close()
 
-	// rippled images don't allocate a TTY, so logs come back in the Docker
-	// multiplexed stream format. io.Copy works for the common case where
-	// the caller just wants the bytes; for strict stdout/stderr separation
-	// callers should use stdcopy themselves.
-	if _, err := io.Copy(w, reader); err != nil && err != io.EOF {
+	// rippled containers run without a TTY, so ContainerLogs returns Docker's
+	// multiplexed stream, where each frame carries an 8-byte stdout/stderr
+	// header. stdcopy de-multiplexes it back into clean output; a raw io.Copy
+	// would dump those frame headers into the terminal as binary garbage.
+	if _, err := stdcopy.StdCopy(w, w, reader); err != nil && err != io.EOF {
 		return fmt.Errorf("error reading logs: %w", err)
 	}
 	return nil
@@ -223,23 +231,70 @@ func (m *Manager) Close() error {
 	return m.docker.Close()
 }
 
+// pullImage pulls imageName, preferring the host-native platform and falling
+// back to linux/amd64 (which runs under emulation on Apple Silicon) before
+// giving up on the registry. The container is created with a nil platform so it
+// always runs whatever this pull actually obtained — see the note in Start for
+// why the requested platform must not be asserted at create time.
 func (m *Manager) pullImage(ctx context.Context, imageName string) error {
 	platOS, platArch := dockerPlatform()
-	reader, err := m.docker.ImagePull(ctx, imageName, image.PullOptions{
-		Platform: fmt.Sprintf("%s/%s", platOS, platArch),
-	})
-	if err != nil {
-		// Pull failed - check if the image exists locally (e.g. locally-built arm64 image)
-		if m.imageExistsLocally(ctx, imageName) {
-			return nil
-		}
-		return fmt.Errorf("image %q not found remotely or locally: %w", imageName, err)
-	}
-	defer reader.Close()
 
-	// Read the pull output (required for pull to complete)
-	_, err = io.Copy(io.Discard, reader)
-	return err
+	// Prefer the host-native platform, then fall back to amd64. The amd64
+	// fallback matters for amd64-only multi-arch manifests, where the daemon
+	// reports an in-stream "no matching manifest" error for the arm64 request.
+	candidates := []string{fmt.Sprintf("%s/%s", platOS, platArch)}
+	if platArch != "amd64" {
+		candidates = append(candidates, "linux/amd64")
+	}
+
+	var lastErr error
+	for _, plat := range candidates {
+		reader, err := m.docker.ImagePull(ctx, imageName, image.PullOptions{Platform: plat})
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		// Drain the pull stream. Pull failures such as "no matching manifest
+		// for <platform>" are reported inside this JSON stream, so we must
+		// inspect it rather than discarding the bytes blindly.
+		err = drainPullStream(reader)
+		reader.Close()
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		return nil
+	}
+
+	// Every remote pull failed - fall back to a locally present image (e.g. one
+	// built locally for this host's architecture).
+	if m.imageExistsLocally(ctx, imageName) {
+		return nil
+	}
+	return fmt.Errorf("image %q not found remotely or locally: %w", imageName, lastErr)
+}
+
+// drainPullStream reads an ImagePull progress stream to completion and returns
+// any error the daemon reports inside it. The daemon delivers errors such as
+// "no matching manifest for linux/arm64" as a JSON object in the stream body
+// rather than as a failure of ImagePull itself, so they would be lost if the
+// stream were simply discarded.
+func drainPullStream(reader io.Reader) error {
+	dec := json.NewDecoder(reader)
+	for {
+		var msg struct {
+			Error string `json:"error"`
+		}
+		if err := dec.Decode(&msg); err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		if msg.Error != "" {
+			return fmt.Errorf("%s", msg.Error)
+		}
+	}
 }
 
 func (m *Manager) imageExistsLocally(ctx context.Context, imageName string) bool {
