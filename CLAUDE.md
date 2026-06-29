@@ -376,11 +376,12 @@ pub extern "C" fn on_withdraw() -> i32 {
 ### Contract Project
 
 ```toml
+primitives = ["contract"]
+
 [project]
 name = "my-contract"
 version = "0.1.0"
 authors = ["Your Name"]
-primitives = ["contract"]
 
 [build]
 source = "contract/src/lib.rs"
@@ -413,11 +414,12 @@ keystore = ".wallets/keystore.json"
 ### Escrow Project
 
 ```toml
+primitives = ["escrow"]
+
 [project]
 name = "my-escrow"
 version = "0.1.0"
 authors = ["Your Name"]
-primitives = ["escrow"]
 
 [escrows.main]
 source = "escrow/src/lib.rs"
@@ -445,11 +447,12 @@ keystore = ".wallets/keystore.json"
 ### Vault Project
 
 ```toml
+primitives = ["vault"]
+
 [project]
 name = "my-vault"
 version = "0.1.0"
 authors = ["Your Name"]
-primitives = ["vault"]
 
 [vaults.main]
 source = "vault/src/lib.rs"

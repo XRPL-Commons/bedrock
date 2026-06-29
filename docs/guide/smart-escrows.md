@@ -273,10 +273,11 @@ bedrock init my-escrow --primitives escrow --template escrow-oracle
 Escrow projects use this `bedrock.toml` structure:
 
 ```toml
+primitives = ["escrow"]
+
 [project]
 name = "my-escrow"
 version = "0.1.0"
-primitives = ["escrow"]
 
 [escrows.main]
 source = "escrow/src/lib.rs"

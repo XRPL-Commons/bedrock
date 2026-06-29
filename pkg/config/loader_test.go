@@ -17,12 +17,14 @@ func writeTOML(t *testing.T, content string) string {
 }
 
 func TestLoadParsesProjectAndNetworks(t *testing.T) {
+	// `primitives` is a root-level key, so it must come before the first table
+	// header — placing it under [project] would make Load silently drop it.
 	path := writeTOML(t, `
+primitives = ["contract"]
+
 [project]
 name = "demo"
 version = "0.1.0"
-
-primitives = ["contract"]
 
 [networks.local]
 url = "ws://localhost:6006"
@@ -47,14 +49,18 @@ network_id = 100
 	if net.NetworkID != 100 {
 		t.Errorf("local.NetworkID = %d, want 100", net.NetworkID)
 	}
+	if !cfg.HasPrimitive("contract") {
+		t.Errorf("expected root-level primitive 'contract' to load, got %v", cfg.Primitives)
+	}
 }
 
 // Load fills in local-node defaults when the section is absent.
 func TestLoadAppliesLocalNodeDefaults(t *testing.T) {
 	path := writeTOML(t, `
+primitives = ["contract"]
+
 [project]
 name = "demo"
-primitives = ["contract"]
 `)
 
 	cfg, err := Load(path)

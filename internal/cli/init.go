@@ -210,13 +210,11 @@ func scaffoldPrimitive(projectName, p string) error {
 func generateConfig(projectName string, selected []string) error {
 	var buf strings.Builder
 
-	buf.WriteString(fmt.Sprintf(`[project]
-name = "%s"
-version = "0.1.0"
-authors = ["Your Name"]
-
-primitives = [`, projectName))
-
+	// `primitives` is a root-level key in bedrock.toml: it must precede the
+	// first table header. Emitting it under [project] would make TOML parse it
+	// as `project.primitives`, which Config never reads (cfg.Primitives loads
+	// empty and is only repopulated by the section-inference fallback in Load).
+	buf.WriteString("primitives = [")
 	for i, p := range selected {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -224,6 +222,13 @@ primitives = [`, projectName))
 		buf.WriteString(fmt.Sprintf(`"%s"`, p))
 	}
 	buf.WriteString("]\n\n")
+
+	buf.WriteString(fmt.Sprintf(`[project]
+name = "%s"
+version = "0.1.0"
+authors = ["Your Name"]
+
+`, projectName))
 
 	// Build section (only for contract)
 	for _, p := range selected {
