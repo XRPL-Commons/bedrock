@@ -31,7 +31,7 @@ func RunCoverage(ctx context.Context, projectRoot string, opts CoverageOptions) 
 	contractDir := filepath.Join(projectRoot, "contract")
 
 	if _, err := os.Stat(filepath.Join(contractDir, "Cargo.toml")); os.IsNotExist(err) {
-		return nil, fmt.Errorf("Cargo.toml not found in %s", contractDir)
+		return nil, fmt.Errorf("no Cargo.toml found in %s", contractDir)
 	}
 
 	startTime := time.Now()

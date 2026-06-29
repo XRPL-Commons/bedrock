@@ -136,11 +136,7 @@ func runEscrowDeploy(cmd *cobra.Command, args []string) error {
 		wasmPath = result.WasmPath
 		color.Green("✓ Built: %s (%d bytes)\n\n", wasmPath, result.Size)
 	} else {
-		// Find existing WASM
-		b := builder.New(".")
-		wasmPath = fmt.Sprintf("%s/target/%s/release", def.SourceDir, def.WasmTarget)
-		_ = b // just need the path
-		// TODO: find wasm file in output dir
+		// TODO: locate the pre-built WASM in the output dir (def.SourceDir/target/...).
 		return fmt.Errorf("--skip-build requires a pre-built WASM file; build first with 'bedrock build --type escrow'")
 	}
 

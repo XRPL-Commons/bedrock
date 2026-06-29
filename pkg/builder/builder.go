@@ -45,7 +45,7 @@ func (b *Builder) Build(ctx context.Context, opts BuildOptions) (*BuildResult, e
 
 	// Check if Cargo.toml exists
 	if _, err := os.Stat(filepath.Join(buildDir, "Cargo.toml")); os.IsNotExist(err) {
-		return nil, fmt.Errorf("Cargo.toml not found in %s", buildDir)
+		return nil, fmt.Errorf("no Cargo.toml found in %s", buildDir)
 	}
 
 	// Build command

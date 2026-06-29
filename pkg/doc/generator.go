@@ -27,11 +27,11 @@ func (g *Generator) Generate(abiData *abi.ABI) (string, error) {
 
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("# %s\n\n", abiData.ContractName))
+	fmt.Fprintf(&sb, "# %s\n\n", abiData.ContractName)
 	sb.WriteString("## Functions\n\n")
 
 	for _, fn := range abiData.Functions {
-		sb.WriteString(fmt.Sprintf("### `%s`\n\n", fn.Name))
+		fmt.Fprintf(&sb, "### `%s`\n\n", fn.Name)
 
 		// Signature
 		var paramTypes []string
@@ -44,7 +44,7 @@ func (g *Generator) Generate(abiData *abi.ABI) (string, error) {
 			retStr = fmt.Sprintf(" -> %s", fn.Returns.Type)
 		}
 
-		sb.WriteString(fmt.Sprintf("```\n%s(%s)%s\n```\n\n", fn.Name, strings.Join(paramTypes, ", "), retStr))
+		fmt.Fprintf(&sb, "```\n%s(%s)%s\n```\n\n", fn.Name, strings.Join(paramTypes, ", "), retStr)
 
 		// Parameters
 		if len(fn.Parameters) > 0 {
@@ -56,7 +56,7 @@ func (g *Generator) Generate(abiData *abi.ABI) (string, error) {
 				if desc == "" {
 					desc = "-"
 				}
-				sb.WriteString(fmt.Sprintf("| `%s` | `%s` | %s |\n", p.Name, p.Type, desc))
+				fmt.Fprintf(&sb, "| `%s` | `%s` | %s |\n", p.Name, p.Type, desc)
 			}
 			sb.WriteString("\n")
 		}
@@ -67,7 +67,7 @@ func (g *Generator) Generate(abiData *abi.ABI) (string, error) {
 			if desc == "" {
 				desc = fn.Returns.Type
 			}
-			sb.WriteString(fmt.Sprintf("**Returns:** `%s` - %s\n\n", fn.Returns.Type, desc))
+			fmt.Fprintf(&sb, "**Returns:** `%s` - %s\n\n", fn.Returns.Type, desc)
 		}
 
 		sb.WriteString("---\n\n")
@@ -78,7 +78,7 @@ func (g *Generator) Generate(abiData *abi.ABI) (string, error) {
 	sb.WriteString("| Type | Rust Equivalent | Description |\n")
 	sb.WriteString("|------|-----------------|-------------|\n")
 	for _, info := range abi.ValidXRPLTypes {
-		sb.WriteString(fmt.Sprintf("| `%s` | `%s` | %s |\n", info.Name, info.RustType, info.Description))
+		fmt.Fprintf(&sb, "| `%s` | `%s` | %s |\n", info.Name, info.RustType, info.Description)
 	}
 
 	outputPath := filepath.Join(g.outputDir, "README.md")

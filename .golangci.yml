@@ -1,0 +1,17 @@
+# golangci-lint configuration (v2 schema).
+# Conservative starting set: keep golangci-lint's sensible defaults (govet,
+# ineffassign, staticcheck, unused) which catch real bugs. Two things are
+# relaxed for now so this CI-bootstrap PR stays focused; tighten them in
+# dedicated follow-ups:
+#   - errcheck: ~32 unchecked-error sites (mostly Close()/os.Remove()/MarkFlagRequired)
+#   - QF1012: a pervasive stylistic quickfix (WriteString(fmt.Sprintf) -> fmt.Fprintf)
+version: "2"
+
+linters:
+  disable:
+    - errcheck # TODO: re-enable once unchecked errors are handled
+  exclusions:
+    rules:
+      - linters:
+          - staticcheck
+        text: "QF1012" # TODO: convert remaining WriteString(fmt.Sprintf) call sites
