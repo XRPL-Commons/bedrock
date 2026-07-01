@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -157,11 +158,23 @@ func runEscrowDeploy(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// XRPL requires every escrow to carry a time bound (CancelAfter or
+	// FinishAfter) — even a smart escrow whose release is governed by WASM.
+	// Without one, EscrowCreate is rejected client-side. Default to a 24h
+	// CancelAfter so deploy works without the user hand-computing a ripple
+	// epoch; the WASM FinishFunction still governs when it can be finished.
+	cancelAfter := escrowCancelAfter
+	if cancelAfter == 0 && escrowFinishAfter == 0 {
+		const rippleEpochOffset = 946684800
+		cancelAfter = time.Now().Unix() - rippleEpochOffset + 86400
+		color.Yellow("  No --finish-after/--cancel-after given; defaulting CancelAfter to +24h\n")
+	}
+
 	result, err := op.Deploy(cmd.Context(), escrow.DeployConfig{
 		WasmPath:    wasmPath,
 		Destination: escrowDestination,
 		Amount:      escrowAmount,
-		CancelAfter: escrowCancelAfter,
+		CancelAfter: cancelAfter,
 		FinishAfter: escrowFinishAfter,
 		NetworkURL:  netCfg.URL,
 		NetworkID:   netCfg.NetworkID,
@@ -214,6 +227,17 @@ func runEscrowFinish(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Finishing a smart escrow runs its WASM condition, so the fee must cover
+	// the computation gas. A flat 1 XRP is rejected on-chain with
+	// telINSUF_FEE_P; when no --fee is given, scale the default with the gas
+	// allowance (~10 drops/gas covered the worst case in testing).
+	feeArg := escrowFee
+	if feeArg == "" {
+		if gas, gerr := strconv.ParseInt(escrowGas, 10, 64); gerr == nil && gas > 0 {
+			feeArg = strconv.FormatInt(gas*10, 10)
+		}
+	}
+
 	result, err := op.Finish(cmd.Context(), escrow.FinishConfig{
 		Owner:                owner,
 		EscrowSequence:       seq,
@@ -221,7 +245,7 @@ func runEscrowFinish(cmd *cobra.Command, args []string) error {
 		NetworkID:            netCfg.NetworkID,
 		WalletSeed:           walletSeed,
 		ComputationAllowance: escrowGas,
-		Fee:                  escrowFee,
+		Fee:                  feeArg,
 	})
 	if err != nil {
 		color.Red("\n✗ Escrow finish failed: %v\n", err)
